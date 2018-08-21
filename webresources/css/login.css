@@ -1,0 +1,72 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+.login-form {
+  width: 360px;
+  padding: 8% 0 0;
+  z-index: 1;
+  background: #FFF;
+  max-width: 360px;
+  margin: auto;
+  padding: 45px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+}
+
+.login-form input {
+  font-family: "Roboto", sans-serif;
+  outline: 0;
+  background: #f2f2f2;
+  width: 100%;
+  border: 0;
+  margin: 0 0 15px;
+  padding: 15px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.login-form button {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #82b1ff;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+.login-form button:hover,.form button:active,.form button:focus {
+  background: #43A047;
+}
+
+.outter-login {
+	display: table;
+	position: absolute;
+	left:0; top:0; right:0; bottom:0;
+	width: 100%;
+	height: 100%;
+	background : #b1bcce;
+}
+.middle {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-login {
+  display: table-cell;
+  vertical-align: middle;
+}
+.head-right{
+    position:absolute;
+    left:170px; right:0;
+    height: 80px;
+    text-align: center;
+   	background : #82b1ff;
+}
+.head-left{
+    position:absolute;
+    left:0; 
+    width: 170px;
+    height: 80px;
+   	background : #82b1ff;
+}

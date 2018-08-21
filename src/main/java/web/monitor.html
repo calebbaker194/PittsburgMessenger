@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<link rel="stylesheet" href="css/theme.css"/> 
+	<link rel="stylesheet" href="css/monitor.css"/>
+	<script src="js/monitor.js"></script>
+</head>
+<body class="html-body bg-light">
+	c
+		<div class="row">
+			#set( $count = 1 )
+			#foreach( $server in $serverList )
+			<div class="cmonitor">
+				<h1 class="ctitle">$server.get('name')</h1>
+				<div class="graph-outer inset-shadow">
+					<div id="chart$count" class="graph-inner"></div>
+				</div>
+				<div class="cmonitor-row">
+					<div class="left">
+						<table class="fill table">
+							<tr>
+								<th>Server Status</th>
+								<td class="right-align">$server.get('status')</td>
+							</tr>
+							<tr>
+								<th>Start Time:</th>
+								<td class="right-align">$server.get('startTime')</td>
+							</tr>
+						</table>
+					</div>
+					<div class="right">
+						<table class="fill table">
+							<tr>
+								<th>Last Error Date:</th>
+								<td class="right-align">$server.get('lastErrorDate')</td>
+							</tr>
+							<tr>
+								<th>Last Error:</th>
+								<td class="right-align">$server.get('lastError')</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="half-row">
+					<button type="button" onclick="start($count)" class="bttn bg-primary">Start</button>
+					<button type="button" onclick="restart($count)" class="bttn bg-primary">Restart</button>
+					<button type="button" onclick="stop($count)" class="bttn bg-primary">Stop</button>
+				</div>
+			 </div>
+			 <div class="clear" ></div>
+			 #set( $count = $count + 1 )
+			 #end
+		</div>
+		<br/>
+	</div>
+	<br/>
+</body>
+</html>

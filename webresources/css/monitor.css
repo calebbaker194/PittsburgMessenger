@@ -1,0 +1,98 @@
+@charset "ISO-8859-1";
+
+#monitors{
+	margin-left: 20px;
+	margin-right: 20px;
+}
+#sms {
+	float:left;
+	margin-left: 10px;
+}
+
+#mail {
+	float:right;
+	margin-right: 10px;
+}
+.cmonitor {
+	background : white;
+  	border: 1px solid grey; 
+	width: 46%;
+	margin: auto;
+	padding-top: 5px; 
+	box-shadow: 1px 2px 12px 2px #9fb59d; 
+	height : 65%;
+	border-radius: 15px;
+	margin-top: 1%;
+} 
+.cmonitor-row { 
+	width: 100%;
+	height: 20%; 
+	
+	margin-top: 2.5%;
+} 
+.ctitle { 
+	font-weight: bold;
+	text-align: center; 
+} 
+.clabel { 
+	text-allign: left; 
+	width: 50%; 
+} 
+.cdata { 
+	width: 50%; 
+	text-allign: right; 
+	float:right; 
+} 
+.ctitle button { 
+	text-align: center;
+	margin-left: 10px; 
+	margin-right: 10px; 
+} 
+.ctitle h1 { 
+	width: 100%;
+	height: 5%;
+} 
+.clear{
+	clear: right;
+}
+.graph-outer {
+	background: #EFEFEF;
+	width: 95%;
+	height: 52%;
+	margin: auto;
+}
+.graph-inner {
+	display: inline-block;
+	width: 95%;
+	height: 85%;
+	margin: 2.5%;
+}
+.left {
+	width: 50%;
+	height: 100%;
+	border-top: 1px solid #dee2e6;
+	float: left;
+}
+.right {
+	width: 50%;
+	height: 100%;
+	border-top: 1px solid #dee2e6;
+	border-left: 1px solid #dee2e6;
+	float: right;
+}
+.half-row {
+	width: 100%;
+	height: 20%; 
+	display: flex;
+    align-items: center;
+    justify-content: center;
+    
+}
+.bttn{
+	margin:8px;
+	padding: 0.5rem 1rem;
+	margine: 0 15px;
+	font-size: 1.25rem;
+	line-height: 1.5;
+	border-radius: 0.3rem;
+}

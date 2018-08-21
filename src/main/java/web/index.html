@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Home</title>
+<link rel="stylesheet" href="css/theme.css"/> 
+<link rel="stylesheet" href="css/main.css"/>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<div class="head bg-primary" >
+  <h1 class="head-title">
+    PITTSBURG MESSENGER
+  </h1>
+</div>
+
+<div class="sidenav" id="links">
+  <a href="/monitor" onclick="return go(this);">Monitor</a>
+  <a href="/configure" onclick="return go(this);">Configure</a>
+  <a href="/server-test" onclick="return go(this);">Server Test</a>
+  <a href="/admin" onclick="return go(this);">Admin</a>
+  <a href="/logout">Logout</a>
+</div>
+
+<div class="body">
+  <div id="pageview"></div>
+</div>
+
+<script>
+
+function go(obj) {
+    var page=obj.href;
+    document.getElementById('pageview').innerHTML='<embed class="pageview" src="'+page+'" type="text/html" />';
+    return false;
+}
+</script>
+
+</html>
