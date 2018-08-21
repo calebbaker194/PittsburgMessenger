@@ -3,30 +3,58 @@
 <head>
 <meta charset="ISO-8859-1">
 <title>Configuration</title>
-
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 <body class="html-body bg-light">
 	<div id="configuration" class="window">
 		<div id="sms-config" class="section">
 			<h1 class="head-title">SMS Configuration</h1>
-			<div class="left-div">
-				
-			</div>
-			<div class="right-div">
-			
+        <div class="form-seperate">
+          <div class="row">
+             <label class="form">Account SID:</label>
+             <input placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+          </div>
+          <br/>
+          <div class="row">
+            <label>Authentication Token:</label>
+            <input placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+        </div>
 			</div>
 			<br/>
 			<div id="sms-map">
+        <div class="map title">
+          <button type="button" class="btn-small bg-secondary">Add Number</button>
+          <button type="button" class="btn-small bg-secondary">Remove Number</button>
+        </div>
 				<div class="map-holder">
-					<div class="left-div" id="phone-number1">
-						<input type="text" value="+19039463351"/>
-					</div>
-					<div class=right-div id="email-map1">
-						<input type="text" value="caleb.email.com"/>
-						<input type="text" value="never.email.com"/>
-					</div>
+          <div class="map">
+            <div class="left-div" id="phone-number1">
+              <input type="text" value="+19039463351"/>
+                <a href="#">
+                <span class="glyphicon glyphicon-trash"></span>
+                </a>
+            </div>
+            <div class=right-div id="email-map1">
+              <input type="text" value="caleb.email.com"/>
+              <input type="text" value="never.email.com"/>
+                            <input type="text" value="never.email.com"/>
+            </div>
+          </div>
+          <br class="clear"/>
+          <div class="map">
+            <div class="left-div" id="phone-number1">
+               <input type="text" value="+19039463351"/>
+            </div>
+            <div class=right-div id="email-map1">
+              <input type="text" value="caleb.email.com"/>
+              <input type="text" value="never.email.com"/>
+            </div>
+          </div>
+        </div>
+          <br class="clear"/>
 				</div>
-			</div>
+      </div>
+      <br class="clear"/>
 		</div>
 		<div id="mail-config" class="section">
 			<h1 class="head-title">Mail Configuration</h1>
@@ -48,6 +76,7 @@
 					</div>
 				</div>
 			</div>
+      <br class="clear"/>
 		</div>
 		<div id="gmail-config" class="section">
 			<h1 class="head-title">Drive Configuration</h1>

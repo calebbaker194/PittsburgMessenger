@@ -1,10 +1,41 @@
-@charset "ISO-8859-1";
-.section {
-	width : 100%;
-	padding : 15px;
-	
+
+.section > .head-title{
+	border-bottom: 3px solid #3F7D3F;
+  padding: 5px;
+}
+.clear{
+  clear: both;
+}
+
+.left-div {
+  float: left;
+  width: 50%;
 
 }
-.section > .head-title{
-	
+.right-div {
+  float: right;
+  width: 50%;
+  text-align: right;
+}
+.section{
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 10px;  
+}
+input {
+  margin: 2px;
+  padding: 3px;
+}
+.right-div > input{
+  text-align: right;
+}
+.form-seperate lable {
+  text-align: left;
+  margin: 2px;
+  padding: 3px;
+}
+.form-seperate input {
+  float: right;
+}
+.map-holder {
+  
 }
