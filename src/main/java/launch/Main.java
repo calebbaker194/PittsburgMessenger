@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
+import json.LaunchConfig;
 import server.ConfigReader;
 import server.Mapper;
 import server.Server;
@@ -29,8 +26,8 @@ public class Main{
 	public SmsServer sms;
 	public DriveServer dr;
 	
-	private String uname="caleb.baker194";
-	private String passwd="arcon194";
+	private String uname="";
+	private String passwd="";
 	
 	public Server[] serverList= {me,sms,dr};
 	
@@ -39,19 +36,27 @@ public class Main{
 	public Main()
 	{
 		
+		LaunchConfig a = new LaunchConfig();
+		
+		a = ConfigReader.ReadConf(a.getClass(), "config/main.conf");
+		
+		uname = a.getWebUser();
+		passwd = a.getWebPassword();
+		
+		
 		staticFiles.externalLocation("webresources");		
 		//Start Mail Server
 		//Start sms server
 		try
 		{
-			port(443);
+			port(a.getPort());
 		} catch (Exception e)
 		{
 			LOGGER.log(Level.SEVERE, e.toString(), e);
 		}
 
 		// Add Certificate for the web server. 
-		secure("cert/cert.p12", "the password",
+		secure(a.getCertPath(), a.getCertPassword(),
 				null, null, false);
 		
 		//Start Mail Server
@@ -167,9 +172,9 @@ public class Main{
 		return (username.equals(uname) && password.equals(passwd));
 	}
 
-	private ArrayList getServers()
+	private ArrayList<HashMap<String, String>> getServers()
 	{
-		ArrayList a = new ArrayList();
+		ArrayList<HashMap<String, String>> a = new ArrayList<HashMap<String, String>>();
 		HashMap<String, String> map;
 		for( Server s: serverList)
 		{

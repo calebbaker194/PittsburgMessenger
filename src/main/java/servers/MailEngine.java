@@ -32,6 +32,7 @@ import javax.mail.Message.RecipientType;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.joda.time.format.DateTimeFormat;
 import email.ImapServer;
+import json.ServerConfig;
 import regex.CommonRegex;
 import server.ConfigReader;
 import server.Mapper;
@@ -645,19 +646,26 @@ public class MailEngine implements Server{
 			LOGGER.log(Level.WARNING, "Closing Mail Connection Failed", e);
 		}
 		load();
-		initMailServer();
-		
+		initMailServer();		
 	}
 
 	@Override
 	public void save()
 	{
-		ConfigReader.WriteConf(defaultServers, "config/mail.conf");
+		ServerConfig s = new ServerConfig();
+		s.setServers(defaultServers);
+		
+		ConfigReader.WriteConf(s, "config/mail.conf");
 	}
 
 	@Override
 	public void load()
 	{
-		defaultServers = (ArrayList<ImapServer>)ConfigReader.ReadConf(defaultServers.getClass(), "config/mail.conf");
+		
+		ServerConfig s = new ServerConfig();
+		
+		s = ConfigReader.ReadConf(s.getClass(), "config/mail.conf");
+		
+		defaultServers = s.getServers();
 	}
 }

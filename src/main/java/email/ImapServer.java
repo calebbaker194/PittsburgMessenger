@@ -12,10 +12,10 @@ public class ImapServer implements Serializable{
 	private String username;
 	private String address;
 	private String password;
-	private String port;
+	private int port;
 	private String auth;
 	private String commonName;
-	public ImapServer(boolean starttls,String host,String username,String address,String commonName,String password,String port,boolean auth)
+	public ImapServer(boolean starttls,String host,String username,String address,String commonName,String password,int port,boolean auth)
 	{
 		setStarttls(starttls);
 		setHost(host);
@@ -25,6 +25,10 @@ public class ImapServer implements Serializable{
 		setPort(port);
 		setAuth(auth);
 		setCommonName(commonName);
+	}
+	public ImapServer()
+	{
+		
 	}
 	public String getStarttls() {
 		return starttls;
@@ -54,9 +58,9 @@ public class ImapServer implements Serializable{
 		this.password = password;
 	}
 	public int getPort() {
-		return Integer.parseInt(port);
+		return (port);
 	}
-	public void setPort(String port) {
+	public void setPort(int port) {
 		this.port = port;
 	}
 	public String getAuth() {
