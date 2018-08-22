@@ -7,14 +7,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import json.ConfigReader;
 import json.LaunchConfig;
-import server.ConfigReader;
 import server.Mapper;
 import server.Server;
 import servers.DriveServer;
 import servers.MailEngine;
 import servers.SmsServer;
+import spark.Filter;
 import spark.ModelAndView;
+import spark.Request;
+import spark.Response;
+import spark.Spark;
 import spark.template.velocity.VelocityTemplateEngine;
 
 import static spark.Spark.*;
@@ -33,8 +44,31 @@ public class Main{
 	
 	private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 	
+    private static final HashMap<String, String> corsHeaders = new HashMap<String, String>();
+	
+    static {
+        corsHeaders.put("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+        corsHeaders.put("Access-Control-Allow-Origin", "*");
+        corsHeaders.put("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin,");
+        corsHeaders.put("Access-Control-Allow-Credentials", "true");
+    }
+	
+    public final static void apply() {
+        Filter filter = new Filter() {
+            @Override
+            public void handle(Request request, Response response) throws Exception {
+                corsHeaders.forEach((key, value) -> {
+                    response.header(key, value);
+                });
+            }
+        };
+        Spark.after(filter);
+    }
+    
 	public Main()
 	{
+		
+		
 		
 		LaunchConfig a = new LaunchConfig();
 		
@@ -43,8 +77,8 @@ public class Main{
 		uname = a.getWebUser();
 		passwd = a.getWebPassword();
 		
+		staticFiles.externalLocation("webresources");	
 		
-		staticFiles.externalLocation("webresources");		
 		//Start Mail Server
 		//Start sms server
 		try
@@ -58,6 +92,8 @@ public class Main{
 		// Add Certificate for the web server. 
 		secure(a.getCertPath(), a.getCertPassword(),
 				null, null, false);
+		
+		apply();
 		
 		//Start Mail Server
 		me = MailEngine.getInstance();
@@ -76,7 +112,8 @@ public class Main{
 		dr.regesterRequiredServers();
 		
 		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
-		me.save();
+		
+		
 	}
 
 	private void InitMonitor()
@@ -96,6 +133,46 @@ public class Main{
 
 				res.redirect("/login");
 				return res;
+		});
+		
+		get("/config.json" , (req,res) -> {
+		
+			HashMap<String,ObjectNode> nodes = new HashMap<String,ObjectNode>();
+			
+			for(Server s:serverList)
+			{
+				ObjectNode t = s.getConfig();
+				nodes.put(t.fieldNames().next(),t);
+			}
+			ObjectNode t = Mapper.getConfig();
+			nodes.put("mapper", t);
+			
+			ObjectMapper m = new ObjectMapper();
+			ObjectNode all=m.createObjectNode();
+			
+			all.setAll(nodes);
+			
+			ObjectWriter writer = m.writer();
+			
+			String ret="";
+			try
+			{
+				ret=writer.writeValueAsString(all);
+			} catch (JsonProcessingException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return ret;
+		});
+		
+		get("/configure", (req,res) -> {
+			
+			Map<String, Object> model = new HashMap<String, Object>();
+			return new VelocityTemplateEngine().render(
+					
+					new ModelAndView(model, "web/configure.html")
+			);
 		});
 		
 		get("/logout", (req,res) -> {

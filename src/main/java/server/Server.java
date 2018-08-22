@@ -1,5 +1,7 @@
 package server;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public interface Server 
 {
 	public Object start();
@@ -13,6 +15,7 @@ public interface Server
 	public void reload();
 	public void save();
 	public void load();
+	public ObjectNode getConfig();
 	//TODO: add public Operation getLastOperation();, This returns a date and an "Operation".
 	//TODO: add public Exception getLastException();
 }

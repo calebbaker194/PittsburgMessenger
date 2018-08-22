@@ -3,7 +3,9 @@
 <head>
 <meta charset="ISO-8859-1">
 <title>Configuration</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/configure.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body class="html-body bg-light">
 	<div id="configuration" class="window">
@@ -12,45 +14,69 @@
         <div class="form-seperate">
           <div class="row">
              <label class="form">Account SID:</label>
-             <input placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+             <input class="large" id="accntsid" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
           </div>
           <br/>
           <div class="row">
             <label>Authentication Token:</label>
-            <input placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+            <input class="large" id="authtoken" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+          </div>
         </div>
-			</div>
+      <div class="map title">
+        <div>
+        <h3 title="What ever number you put on the left will be tunneld through to the email on the right">Map Incoming Text Messages</h3>
+        </div>
+        <button class="bg-primary" type="button" onclick="javascript:addMap('sms');">Add</button>
+        <button class="bg-primary" type="button" onclick="javascript:deleteMap('sms');">Remove</button>
+      </div>
 			<br/>
 			<div id="sms-maps">
-					<div class="left-div" id="sms-phone-number1">
-				<div id="sms-map1" class="map-holder">
-						<input type="text" value="+19039463351"/>
-					</div>
-					<div class="right-div" id="sms-email1">
-						<input type="text" value="caleb.email.com"/>
-					</div>
-				</div>
-      </div>
+			</div>
       <br class="clear"/>
 		</div>
 		<div id="mail-config" class="section">
 			<h1 class="head-title">Mail Configuration</h1>
-			<div class="left-div">
-			
-			</div>
-			<div class="right-div">
-			
-			</div>
-						<br/>
+        <div class="form-seperate">
+          <div class="row">
+             <label class="form">Email Host:</label>
+             <input id="emailhost" placeholder="mail.example.com" type="text"/>
+          </div>
+          <br/>
+          <div class="row">
+            <label class="form">Email Address:</label>
+            <input id="emailaddress" placeholder="user@mail.example.com" type="text"/>
+          </div>
+          <br/>
+          <div class="row">
+            <label class="form">Username:</label>
+            <input id="username" placeholder="Username" type="text"/>
+          </div>
+          <br/>
+          <div class="row">
+            <label class="form">Password:</label>
+            <input id="password" placeholder="Password" type="password"/>
+          </div>
+          <br/>
+          <div class="row">
+            <label class="form">SSL Authentication:</label>
+            <input id="ssl" type="checkbox"/>
+          </div>
+          <br/>
+          <div class="row">
+            <label class="form">Use STARTLS:</label>
+            <input id="star" type="checkbox"/>
+          </div>
+        </div>
+			<br/>
+      <div class="map title">
+        <div>
+        <h3 title="Emails Sent from the address on the left well be send out from the number on the right">Map Incoming Text Messages</h3>
+        </div>
+        <button class="bg-primary" type="button" onclick="javascript:addMap('mail');">Add</button>
+        <button class="bg-primary" type="button" onclick="javascript:deleteMap('mail');">Remove</button>
+      </div>
+      <br/>
 			<div id="mail-maps">
-				<div id="mail-map1" class="map-holder">
-					<div class="left-div" id="mail-email1">
-						<input type="text" value="+19039463351"/>
-					</div>
-					<div class="right-div" id="mail-phone-number1">
-						<input type="text" value="caleb.email.com"/>
-					</div>
-				</div>
 			</div>
       <br class="clear"/>
 		</div>
@@ -58,6 +84,113 @@
 			<h1 class="head-title">Drive Configuration</h1>
 		</div>
 	<br/>
-	</div>
+</div>
 </body>
+
+<Script>
+var ConfData=null;
+var smsc=0;
+var mailc=0;
+
+window.onload = function() {
+	$.getJSON( "https://127.0.0.1/config.json", function( data ) {
+    console.log(data);
+		var SmsToEmail = data.mapper.mapper.SmsToEmail;
+    var EmailToSms = data.mapper.mapper.EmailToSms;
+    var MailServer = data.MailServer.MailServer;
+    var SmsServer = data.SmsServer.SmsServer;
+    
+    document.getElementById("accntsid").value=SmsServer.AccountSID;
+    document.getElementById("authtoken").value=SmsServer.AuthToken;
+    
+    var DMailServer = MailServer.defaultServer[0];
+    
+    document.getElementById("emailhost").value=DMailServer.host;
+    document.getElementById("emailaddress").value=DMailServer.address;
+    document.getElementById("username").value=DMailServer.username;
+    document.getElementById("password").value=DMailServer.password;
+    document.getElementById("ssl").checked=DMailServer.auth;
+    document.getElementById("star").checked=DMailServer.starttls;
+	});
+};
+
+function addMap(type)
+{
+	var i=0;
+  if(type=="sms") {
+  	i=smsc;
+  }
+  else {
+    i=mailc;
+  }
+  
+  i++;
+  console.log(type);
+  var map = document.createElement("div");
+  var left = document.createElement("div");
+  var right = document.createElement("div");
+  var phone = document.createElement("input");
+  var email = document.createElement("input");
+  
+  map.id = type+"-map"+i;
+  map.classList.add("map-holder");
+  left.classList.add("left-div");
+  left.id = type+"-phone-number"+i
+  right.classList.add("right-div");
+  right.id=type+"email"+i;
+  phone.type="text";
+  phone.name=type+"phonein-"+i;
+  email.type="text";
+  email.name=type+"numberin-"+i;
+  
+  map.appendChild(left);
+  map.appendChild(right);
+  
+  if(type=="sms") {
+  	left.appendChild(phone);
+  	right.appendChild(email);
+  }
+  else {
+    left.appendChild(email);
+  	right.appendChild(phone);
+  }
+
+  
+  var holder=document.getElementById(type+"-maps");
+  holder.appendChild(map);
+  
+  if(type=="sms") {
+  	smsc=i;
+  }
+  else {
+    mailc=i;
+  }
+}
+function deleteMap(type)
+{
+	var i=0;
+  if(type=="sms") {
+  	i=smsc;
+  }
+  else {
+    i=mailc;
+  }
+
+	if(i>1) {
+    var holder=document.getElementById(type+"-maps");
+    var maps = type+"-map"+i;
+    var map=document.getElementById(maps);
+    holder.removeChild(map);
+    i--;
+  }
+  
+  if(type=="sms") {
+  	smsc=i;
+  }
+  else {
+    mailc=i;
+  }
+}
+</Script>
+
 </html>

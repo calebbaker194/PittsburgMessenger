@@ -1,6 +1,7 @@
 package servers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.twilio.Twilio;
 import com.twilio.base.ResourceSet;
 import com.twilio.twiml.MessagingResponse;
@@ -397,5 +398,19 @@ public class SmsServer implements server.Server{
 	{
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public ObjectNode getConfig()
+	{
+		ObjectMapper m = new ObjectMapper();
+		
+		ObjectNode o2 = m.createObjectNode();
+		ObjectNode o1 = m.createObjectNode();
+		o1.put("AuthToken",AUTH_TOKEN);
+		o1.put("AccountSID", ACCOUNT_SID);
+		o2.set("SmsServer", o1);
+		
+		return o2;
 	}
 }

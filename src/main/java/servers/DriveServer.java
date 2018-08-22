@@ -19,6 +19,8 @@ import javax.xml.crypto.URIReferenceException;
 
 import org.joda.time.format.DateTimeFormat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -286,5 +288,14 @@ public class DriveServer implements server.Server{
 	public void load()
 	{
 		//Keep Blank. The drive loads its credentials every time it calls for a link
+	}
+
+	@Override
+	public ObjectNode getConfig()
+	{
+		ObjectMapper m = new ObjectMapper();
+		ObjectNode o1 = m.createObjectNode();
+		o1.put("nothing", "nothing");
+		return o1;
 	}
 }

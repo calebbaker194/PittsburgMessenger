@@ -7,13 +7,13 @@ public class ImapServer implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = -8812497077186759604L;
-	private String starttls = "false";
+	private boolean starttls = false;
 	private String host;
 	private String username;
 	private String address;
 	private String password;
 	private int port;
-	private String auth;
+	private boolean auth;
 	private String commonName;
 	public ImapServer(boolean starttls,String host,String username,String address,String commonName,String password,int port,boolean auth)
 	{
@@ -30,14 +30,11 @@ public class ImapServer implements Serializable{
 	{
 		
 	}
-	public String getStarttls() {
+	public boolean getStarttls() {
 		return starttls;
 	}
 	public void setStarttls(boolean starttls) {
-		if(starttls)
-			this.starttls="true";
-		else
-			this.starttls="false";
+			this.starttls=starttls;
 	}
 	public String getHost() {
 		return host;
@@ -63,14 +60,11 @@ public class ImapServer implements Serializable{
 	public void setPort(int port) {
 		this.port = port;
 	}
-	public String getAuth() {
+	public boolean getAuth() {
 		return auth;
 	}
 	public void setAuth(boolean auth) {
-		if(auth)
-			this.auth="true";
-		else
-			this.auth="false";
+		this.auth=auth;
 	}
 	public String getAddress() {
 		return address;

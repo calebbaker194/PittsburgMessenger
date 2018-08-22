@@ -7,8 +7,12 @@ import java.util.HashMap;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import json.ConfigReader;
 
 public class Mapper{
 
@@ -97,5 +101,19 @@ public class Mapper{
 	public static void addNumberToEmail(String number,String email)
 	{
 		numToEmail.put(number , email);
+	}
+	public static ObjectNode getConfig()
+	{
+		ObjectMapper m = new ObjectMapper();
+		ObjectNode o1= m.createObjectNode();
+		ObjectNode o2= m.createObjectNode();
+		JsonNode node1= m.convertValue(numToEmail, JsonNode.class);
+		JsonNode node2 = m.convertValue(emailToNum, JsonNode.class);
+		o1.set("SmsToEmail", node1);
+		o1.set("EmailToSms", node2);
+		
+		o2.set("mapper", o1);
+		
+		return o2;
 	}
 }

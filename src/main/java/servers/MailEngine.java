@@ -31,10 +31,15 @@ import javax.mail.Flags.Flag;
 import javax.mail.Message.RecipientType;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.joda.time.format.DateTimeFormat;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import email.ImapServer;
-import json.ServerConfig;
+import json.ConfigReader;
+import json.MailServerConfig;
 import regex.CommonRegex;
-import server.ConfigReader;
 import server.Mapper;
 import server.Server;
 import server.mailParseTask;
@@ -652,8 +657,9 @@ public class MailEngine implements Server{
 	@Override
 	public void save()
 	{
-		ServerConfig s = new ServerConfig();
-		s.setServers(defaultServers);
+		MailServerConfig s = new MailServerConfig();
+		
+		s.setMailservers(defaultServers);
 		
 		ConfigReader.WriteConf(s, "config/mail.conf");
 	}
@@ -662,10 +668,25 @@ public class MailEngine implements Server{
 	public void load()
 	{
 		
-		ServerConfig s = new ServerConfig();
+		MailServerConfig s = new MailServerConfig();
 		
 		s = ConfigReader.ReadConf(s.getClass(), "config/mail.conf");
 		
-		defaultServers = s.getServers();
+		defaultServers = s.getMailservers();
+	}
+
+	@Override
+	public ObjectNode getConfig()
+	{
+		ObjectMapper m = new ObjectMapper();
+		
+		ObjectNode o1 = m.createObjectNode();
+		ObjectNode o2 = m.createObjectNode();
+		JsonNode node = m.convertValue(defaultServers, JsonNode.class);
+		
+		o2.set("MailServer", o1);
+		o1.set("defaultServer", node);
+		
+		return o2;
 	}
 }

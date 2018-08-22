@@ -1,7 +1,8 @@
-package server;
+package json;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -68,7 +69,7 @@ public class ConfigReader
 		}
 		return false;
 	}
-	public static boolean printObject(Object o) 
+	public static String printObject(Object o) 
 	{
 		ObjectMapper mapper = new ObjectMapper(); 
 		
@@ -77,8 +78,7 @@ public class ConfigReader
 
 			try
 			{
-				System.out.println(writer.writeValueAsString(o));
-				return true;
+				return writer.writeValueAsString(o);
 			} catch (JsonProcessingException e)
 			{
 				// TODO Auto-generated catch block
@@ -86,6 +86,29 @@ public class ConfigReader
 			}
 			
 	
-		return false;
+		return "error";
+	}
+	public static String printObject(Object[] ol) 
+	{
+		ObjectMapper mapper = new ObjectMapper(); 
+		
+		ArrayList<Object> olist = new ArrayList<Object>();
+		
+		for( Object o: ol)
+			olist.add(o);
+		
+		ObjectWriter writer = mapper.writer();
+
+			try
+			{
+				return writer.writeValueAsString(olist);
+			} catch (JsonProcessingException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+	
+		return "error";
 	}
 }
