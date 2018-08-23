@@ -39,7 +39,7 @@ public class Main{
 	
 	private String uname="";
 	private String passwd="";
-	
+ 
 	public Server[] serverList= {me,sms,dr};
 	
 	private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
@@ -164,6 +164,15 @@ public class Main{
 				e.printStackTrace();
 			}
 			return ret;
+		});
+		
+		post("/config.json" , (req,res) -> {
+			
+			
+			System.out.println(req.queryParams("data"));
+			
+			res.type("application/json");
+			return "{\"success\":true}";
 		});
 		
 		get("/configure", (req,res) -> {

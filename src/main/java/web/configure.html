@@ -20,7 +20,7 @@
           <br/>
           <div class="row">
             <label>Authentication Token:</label>
-            <input data-autosize-input='{ "space": 10 }'class="large" id="authtoken" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+            <input data-autosize-input='{ "space": 10 }' class="large" id="authtoken" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
           </div>
         </div>
       <div class="map title">
@@ -94,9 +94,10 @@ var smsc=0;
 var mailc=0;
 
 window.onload = function() {
-	$.getJSON( "https://127.0.0.1/config.json", function( data ) {
+	$.getJSON( "/config.json", function( data ) {
+		
     console.log(data);
-		var SmsToEmail = data.mapper.mapper.SmsToEmail;
+	var SmsToEmail = data.mapper.mapper.SmsToEmail;
     var EmailToSms = data.mapper.mapper.EmailToSms;
     var MailServer = data.MailServer.MailServer;
     var SmsServer = data.SmsServer.SmsServer;
@@ -112,6 +113,19 @@ window.onload = function() {
     document.getElementById("password").value=DMailServer.password;
     document.getElementById("ssl").checked=DMailServer.auth;
     document.getElementById("star").checked=DMailServer.starttls;
+    
+    for(var emnum in EmailToSms) {
+    	addMap("mail");
+    	document.getElementById("mail-emailin-"+mailc).value=emnum;
+    	document.getElementById("mail-phonein-"+mailc).value=EmailToSms[emnum];
+    }
+    
+    for(var numem in SmsToEmail) {
+    	addMap("sms");
+    	document.getElementById("sms-emailin-"+smsc).value=SmsToEmail[numem];
+    	document.getElementById("sms-phonein-"+smsc).value=numem;
+    }
+    
 	});
 };
 
@@ -140,9 +154,11 @@ function addMap(type)
   right.classList.add("right-div");
   right.id=type+"email"+i;
   phone.type="text";
-  phone.name=type+"phonein-"+i;
+  phone.id=type+"-phonein-"+i;
+  phone.placeholder="+1NXXNXXXXXX";
   email.type="text";
-  email.name=type+"numberin-"+i;
+  email.id=type+"-emailin-"+i;
+  email.placeholder="example@gmail.com";
   
   map.appendChild(left);
   map.appendChild(right);
@@ -166,6 +182,9 @@ function addMap(type)
   else {
     mailc=i;
   }
+  
+  document.getElementById(type+"-emailin-"+i).setAttribute('data-autosize-input','{ "space": 10 }');
+  document.getElementById(type+"-phonein-"+i).setAttribute('data-autosize-input','{ "space": 10 }');
 }
 function deleteMap(type)
 {
@@ -192,6 +211,53 @@ function deleteMap(type)
     mailc=i;
   }
 }
+
+ function save() {
+	 
+	var returnval = new Object();
+	var SmsToEmail = new Object();
+    var EmailToSms = new Object();
+    var MailServer = new Object();
+    var SmsServer = new Object();
+    var mapper = new Object();
+	
+    SmsServer.AccountSID=document.getElementById("accntsid").value;
+    SmsServer.AuthToken=document.getElementById("authtoken").value;
+    
+    var defaultServer = [];
+    defaultServer.push(new Object());
+    
+    defaultServer[0].host = document.getElementById("emailhost").value;
+    defaultServer[0].address = document.getElementById("emailaddress").value;
+    defaultServer[0].username = document.getElementById("username").value;
+    defaultServer[0].password = document.getElementById("password").value;
+    defaultServer[0].auth = document.getElementById("ssl").checked;
+    defaultServer[0].starttls = document.getElementById("star").checked;
+    
+    MailServer.defalutServer = defaultServer;
+    
+    
+    //TODO: add mapper data
+    
+    
+    mapper.SmsToEmail = SmsToEmail;
+    mapper.EmailToSms = EmailToSms;
+    
+    returnval.MailServer = MailServer;
+    returnval.mapper = mapper;
+    returnval.SmsServer = SmsServer;
+    
+    console.log(returnval);
+    
+	$.post("/config.json",{"data":returnval}, function( data ) {
+		if(data.success) {
+			alert("success");
+	    }
+		else {
+			alert("failure");
+		}
+	 },"json");
+ }
 </Script>
 
 </html>

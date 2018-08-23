@@ -48,7 +48,7 @@ public class SmsServer implements server.Server{
 	public boolean init = false;
 	public HashMap<String, String> autoReplyMap;
 	// Create Number and response maps
-	
+ 
 	//Create Single Instance
 	private SmsServer()
 	{
