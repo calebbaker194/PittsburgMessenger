@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="css/theme.css">
 <link rel="stylesheet" href="css/configure.css"/>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="js/autosize.js"></script>
 </head>
 <body class="html-body bg-light">
 	<div id="configuration" class="window">
@@ -14,12 +15,12 @@
         <div class="form-seperate">
           <div class="row">
              <label class="form">Account SID:</label>
-             <input class="large" id="accntsid" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+             <input data-autosize-input='{ "space": 10 }' class="large" id="accntsid" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
           </div>
           <br/>
           <div class="row">
             <label>Authentication Token:</label>
-            <input class="large" id="authtoken" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
+            <input data-autosize-input='{ "space": 10 }'class="large" id="authtoken" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx" type="text"/>
           </div>
         </div>
       <div class="map title">
@@ -39,32 +40,32 @@
         <div class="form-seperate">
           <div class="row">
              <label class="form">Email Host:</label>
-             <input id="emailhost" placeholder="mail.example.com" type="text"/>
+             <input data-autosize-input='{ "space": 10 }' id="emailhost" placeholder="mail.example.com" type="text"/>
           </div>
           <br/>
           <div class="row">
             <label class="form">Email Address:</label>
-            <input id="emailaddress" placeholder="user@mail.example.com" type="text"/>
+            <input data-autosize-input='{ "space": 10 }' id="emailaddress" placeholder="user@mail.example.com" type="text"/>
           </div>
           <br/>
           <div class="row">
             <label class="form">Username:</label>
-            <input id="username" placeholder="Username" type="text"/>
+            <input data-autosize-input='{ "space": 10 }' id="username" placeholder="Username" type="text"/>
           </div>
           <br/>
           <div class="row">
             <label class="form">Password:</label>
-            <input id="password" placeholder="Password" type="password"/>
+            <input data-autosize-input='{ "space": 10 }' id="password" placeholder="Password" type="password"/>
           </div>
           <br/>
           <div class="row">
             <label class="form">SSL Authentication:</label>
-            <input id="ssl" type="checkbox"/>
+            <input data-autosize-input='{ "space": 10 }' id="ssl" type="checkbox"/>
           </div>
           <br/>
           <div class="row">
             <label class="form">Use STARTLS:</label>
-            <input id="star" type="checkbox"/>
+            <input data-autosize-input='{ "space": 10 }' id="star" type="checkbox"/>
           </div>
         </div>
 			<br/>
