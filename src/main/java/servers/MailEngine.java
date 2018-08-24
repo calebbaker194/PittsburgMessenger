@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -167,13 +168,13 @@ public class MailEngine implements Server{
 		}
 		else
 		{
-//			timer.schedule(new TimerTask() {	
-//				@Override
-//				public void run()
-//				{
-//					checkMail();
-//				}
-//			}, 1000,CHECK_INTERVAL); 
+			timer.schedule(new TimerTask() {	
+				@Override
+				public void run()
+				{
+					checkMail();
+				}
+			}, 1000,CHECK_INTERVAL); 
 			isRunning = false;
 		}
 		if(SmsServer.getInstance() != null)

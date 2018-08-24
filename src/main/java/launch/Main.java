@@ -132,69 +132,101 @@ public class Main{
 		
 		get("/config.json" , (req,res) -> {
 		
-			HashMap<String,ObjectNode> nodes = new HashMap<String,ObjectNode>();
-			
-			for(Server s:serverList)
+			if(req.session(false) != null)
 			{
-				ObjectNode t = s.getConfig();
-				nodes.put(t.fieldNames().next(),t);
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					HashMap<String,ObjectNode> nodes = new HashMap<String,ObjectNode>();
+					
+					for(Server s:serverList)
+					{
+						ObjectNode t = s.getConfig();
+						nodes.put(t.fieldNames().next(),t);
+					}
+					ObjectNode t = Mapper.getConfig();
+					nodes.put("mapper", t);
+					
+					ObjectMapper m = new ObjectMapper();
+					ObjectNode all=m.createObjectNode();
+					
+					all.setAll(nodes);
+					
+					ObjectWriter writer = m.writer();
+					
+					String ret="";
+					try
+					{
+						ret=writer.writeValueAsString(all);
+					} catch (JsonProcessingException e)
+					{
+						LOGGER.log(Level.WARNING,"Failure Reading Log Files",e);
+					}
+					return ret;
+				}
 			}
-			ObjectNode t = Mapper.getConfig();
-			nodes.put("mapper", t);
-			
-			ObjectMapper m = new ObjectMapper();
-			ObjectNode all=m.createObjectNode();
-			
-			all.setAll(nodes);
-			
-			ObjectWriter writer = m.writer();
-			
-			String ret="";
-			try
-			{
-				ret=writer.writeValueAsString(all);
-			} catch (JsonProcessingException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return ret;
+			res.redirect("/login");
+			return res;
 		});
 		
 		post("/config.json" , (req,res) -> {
 			
-		    ObjectMapper mapper = new ObjectMapper();
-		    JsonNode jsonConfig = mapper.readTree(req.queryParams("data"));
-			
-		    JsonNode mailServer = jsonConfig.get("MailServer");
-		    JsonNode smsServer = jsonConfig.get("SmsServer");
-		    JsonNode map = jsonConfig.get("mapper");
-		    
-		    me.setConfig(mailServer);
-		    sms.setConfig(smsServer);
-		    Mapper.setConfig(map);
-			
-			res.type("application/json");
-			return "{\"success\":true}";
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+				    ObjectMapper mapper = new ObjectMapper();
+				    JsonNode jsonConfig = mapper.readTree(req.queryParams("data"));
+					
+				    JsonNode mailServer = jsonConfig.get("MailServer");
+				    JsonNode smsServer = jsonConfig.get("SmsServer");
+				    JsonNode map = jsonConfig.get("mapper");
+				    
+				    me.setConfig(mailServer);
+				    sms.setConfig(smsServer);
+				    Mapper.setConfig(map);
+					
+					res.type("application/json");
+					return "{\"success\":true}";
+				}
+			}
+			res.redirect("/login");
+			return res;
 		});
 		
 		get("/configure", (req,res) -> {
 			
-			Map<String, Object> model = new HashMap<String, Object>();
-			return new VelocityTemplateEngine().render(
-					
-					new ModelAndView(model, "web/configure.html")
-			);
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					Map<String, Object> model = new HashMap<String, Object>();
+					return new VelocityTemplateEngine().render(
+							
+							new ModelAndView(model, "web/configure.html")
+					);
+				}
+			}
+			res.redirect("/login");
+			return res;
 		});
 		
 		get("/logout", (req,res) -> {
-			if(req.session(false) != null )
-				req.session(false).removeAttribute("username");
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					if(req.session(false) != null )
+						req.session(false).removeAttribute("username");
+					res.redirect("/login");
+					return res;
+				}
+			}
 			res.redirect("/login");
 			return res;
 		});
 		
 		post("/login", (req,res) -> {
+			
 			String username = req.queryParams("username");
 			String password = req.queryParams("password");
 			
@@ -215,6 +247,15 @@ public class Main{
 		});
 		
 		get("/login" , (req,res) -> {
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+				res.redirect("/");
+				return res;
+				}
+			}
+			
 			Map<String, Object> model = new HashMap<String, Object>();
 			return new VelocityTemplateEngine().render(
 					
@@ -223,35 +264,67 @@ public class Main{
 		});
 		
 		get("/monitor", (req, res) -> {
-			Map<String, Object> model = new HashMap<String, Object>();
-			
-			model.put("serverList", getServers());
-			
-			return new VelocityTemplateEngine().render(
-					new ModelAndView(model, "web/monitor.html")
-			); 
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					Map<String, Object> model = new HashMap<String, Object>();
+					
+					model.put("serverList", getServers());
+					
+					return new VelocityTemplateEngine().render(
+							new ModelAndView(model, "web/monitor.html")
+					); 
+				}
+			}
+			res.redirect("/login");
+			return res;
 		});
 		
 		post("/restart",(req, res) -> {
-			int tindex=Integer.parseInt(req.queryParams("index"));
-			LOGGER.info("SERVER "+ tindex +" Is Restarting");
-			serverList[tindex].restart();
-			serverList = new Server[] {me,sms,dr};
-			return true;
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					int tindex=Integer.parseInt(req.queryParams("index"));
+					LOGGER.info("SERVER "+ tindex +" Is Restarting");
+					serverList[tindex].restart();
+					serverList = new Server[] {me,sms,dr};
+					return true;
+				}
+			}
+			res.redirect("/login");
+			return false;
 		});
 		post("/stop",(req, res) -> {
-			int tindex=Integer.parseInt(req.queryParams("index"));
-			LOGGER.info("SERVER "+ tindex +" Has Stopped");
-			serverList[tindex].stop();
-			serverList = new Server[] {me,sms,dr};
-			return true;
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					int tindex=Integer.parseInt(req.queryParams("index"));
+					LOGGER.info("SERVER "+ tindex +" Has Stopped");
+					serverList[tindex].stop();
+					serverList = new Server[] {me,sms,dr};
+					return true;
+				}
+			}
+			res.redirect("/login");
+			return false;
 		});
 		post("/start",(req, res) -> {
-			int tindex=Integer.parseInt(req.queryParams("index"));
-			LOGGER.info("SERVER "+ tindex +" Has Started");
-			serverList[tindex].start();
-			serverList = new Server[] {me,sms,dr};
-			return true;
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					int tindex=Integer.parseInt(req.queryParams("index"));
+					LOGGER.info("SERVER "+ tindex +" Has Started");
+					serverList[tindex].start();
+					serverList = new Server[] {me,sms,dr};
+					return true;
+				}
+			}
+			res.redirect("/login");
+			return false;
 		});
 	}
 	

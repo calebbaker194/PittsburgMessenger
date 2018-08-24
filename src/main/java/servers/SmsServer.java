@@ -40,7 +40,7 @@ public class SmsServer implements server.Server{
 	private MailEngine me = null;
 	private long lastErrorDate = 0l;
 	private Exception lastError = null;
-	
+
 	private String ACCOUNT_SID = "";
 	private String AUTH_TOKEN = "";
 	public boolean init = false;
@@ -66,7 +66,6 @@ public class SmsServer implements server.Server{
 	// Starts Web Server for twilio
 	private void InitSmsServer()
 	{
-		Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
 		Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
 		init = true;
 		// Set Port for web server
@@ -362,6 +361,7 @@ public class SmsServer implements server.Server{
 	 */
 	public boolean reload()
 	{
+		load();
 		return true;
 	}
 
@@ -400,6 +400,7 @@ public class SmsServer implements server.Server{
 			LOGGER.log(Level.WARNING, "Failed To load SMS configuration", e);
 			return false;
 		}
+		Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
 		return true;
 	}
 

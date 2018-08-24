@@ -125,7 +125,6 @@ public class Mapper{
 		HashMap<String,HashMap<String, String>> maps = new HashMap<String,HashMap<String, String>>();
 		try
 		{
-			System.out.println(m.writeValueAsString(map));
 			maps = m.treeToValue(map, maps.getClass());
 			numToEmail = maps.get("SmsToEmail");
 			emailToNum = maps.get("EmailToSms");
