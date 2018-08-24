@@ -1,21 +1,12 @@
 package launch;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.Buffer;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import org.mortbay.util.ajax.JSONObjectConvertor;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -172,10 +163,16 @@ public class Main{
 		
 		post("/config.json" , (req,res) -> {
 			
-			 ObjectMapper mapper = new ObjectMapper();
-		      JsonNode jsonMap = mapper.readTree(req.raw().getInputStream());
+		    ObjectMapper mapper = new ObjectMapper();
+		    JsonNode jsonConfig = mapper.readTree(req.queryParams("data"));
 			
-		      System.out.println(mapper.writeValueAsString(jsonMap));
+		    JsonNode mailServer = jsonConfig.get("MailServer");
+		    JsonNode smsServer = jsonConfig.get("SmsServer");
+		    JsonNode map = jsonConfig.get("mapper");
+		    
+		    me.setConfig(mailServer);
+		    sms.setConfig(smsServer);
+		    Mapper.setConfig(map);
 			
 			res.type("application/json");
 			return "{\"success\":true}";

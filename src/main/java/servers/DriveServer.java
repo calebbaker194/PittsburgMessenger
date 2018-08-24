@@ -19,6 +19,7 @@ import javax.xml.crypto.URIReferenceException;
 
 import org.joda.time.format.DateTimeFormat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.auth.oauth2.Credential;
@@ -273,21 +274,24 @@ public class DriveServer implements server.Server{
 		return true;
 	}
 
-	public void reload()
+	public boolean reload()
 	{
 		//Keep Blank. The drive loads its credentials every time it calls for a link
+		return true;
 	}
 
 	@Override
-	public void save()
+	public boolean save()
 	{
 		// not sure how its going to play in
+		return true;
 	}
 
 	@Override
-	public void load()
+	public boolean load()
 	{
 		//Keep Blank. The drive loads its credentials every time it calls for a link
+		return true;
 	}
 
 	@Override
@@ -297,5 +301,11 @@ public class DriveServer implements server.Server{
 		ObjectNode o1 = m.createObjectNode();
 		o1.put("nothing", "nothing");
 		return o1;
+	}
+
+	@Override
+	public boolean setConfig(JsonNode config)
+	{
+		return true;
 	}
 }

@@ -78,4 +78,15 @@ public class ImapServer implements Serializable{
 	public void setCommonName(String commonName) {
 		this.commonName = commonName;
 	}
+	public String toString()
+	{
+		String s = "";
+		s+="host: "+host+"\n";
+		s+="address: "+address+"\n";
+		s+="username: "+username+"\n";
+		s+="password: "+password+"\n";
+		s+="auth: "+auth+"\n";
+		s+="starttls: "+starttls+"\n";
+		return s;
+	}
 }

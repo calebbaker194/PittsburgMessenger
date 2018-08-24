@@ -234,17 +234,17 @@ function deleteMap(type)
     defaultServer[0].auth = document.getElementById("ssl").checked;
     defaultServer[0].starttls = document.getElementById("star").checked;
     
-    MailServer.defalutServer = defaultServer;
+    MailServer.defaultServer = defaultServer;
     
     
     //TODO: add mapper data
     //smsc mailc 
     for (var i = 1; i <= mailc; i++) { 
-    	EmailToSms[document.getElementById("mail-emailin-"+i).value]=document.getElementById("mail-phonein-"+mailc).value;
+    	EmailToSms[document.getElementById("mail-emailin-"+i).value]=document.getElementById("mail-phonein-"+i).value;
     }
     
     for (var i = 1; i <= smsc; i++) { 
-    	SmsToEmail[document.getElementById("sms-phonein-"+i).value]=document.getElementById("sms-emailin-"+mailc).value;
+    	SmsToEmail[document.getElementById("sms-phonein-"+i).value]=document.getElementById("sms-emailin-"+i).value;
     }
     
     mapper.SmsToEmail = SmsToEmail;

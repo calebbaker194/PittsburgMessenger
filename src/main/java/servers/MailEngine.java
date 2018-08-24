@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -32,6 +31,7 @@ import javax.mail.Message.RecipientType;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.joda.time.format.DateTimeFormat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -641,7 +641,7 @@ public class MailEngine implements Server{
 	 * (non-Javadoc)
 	 * This will reload all of the related configuration files.
 	 */
-	public void reload()
+	public boolean reload()
 	{
 		try
 		{
@@ -651,28 +651,34 @@ public class MailEngine implements Server{
 			LOGGER.log(Level.WARNING, "Closing Mail Connection Failed", e);
 		}
 		load();
-		initMailServer();		
+		initMailServer();
+		
+		return true;
 	}
 
 	@Override
-	public void save()
+	public boolean save()
 	{
 		MailServerConfig s = new MailServerConfig();
 		
-		s.setMailservers(defaultServers);
+		s.setDefaultServer(defaultServers);
 		
 		ConfigReader.WriteConf(s, "config/mail.conf");
+		
+		return true;
 	}
 
 	@Override
-	public void load()
+	public boolean load()
 	{
 		
 		MailServerConfig s = new MailServerConfig();
 		
 		s = ConfigReader.ReadConf(s.getClass(), "config/mail.conf");
 		
-		defaultServers = s.getMailservers();
+		defaultServers = s.getDefaultServer();
+		
+		return true;
 	}
 
 	@Override
@@ -688,5 +694,22 @@ public class MailEngine implements Server{
 		o1.set("defaultServer", node);
 		
 		return o2;
+	}
+
+	@Override
+	public boolean setConfig(JsonNode config)
+	{
+		ObjectMapper m = new ObjectMapper();
+		try
+		{
+			MailServerConfig msc = m.treeToValue(config,MailServerConfig.class);
+			defaultServers = msc.getDefaultServer();
+		} catch (JsonProcessingException e)
+		{
+			LOGGER.log(Level.WARNING, "An Unknonw Error While Saving Configuration", e);
+			return false;
+		}
+		LOGGER.info("Mail Server Configuration Saved");
+		return true;
 	}
 }

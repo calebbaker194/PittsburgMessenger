@@ -5,17 +5,17 @@ import java.util.ArrayList;
 import email.ImapServer;
 
 public class MailServerConfig {
-	
-	private ArrayList<ImapServer> mailservers = new ArrayList<ImapServer>();
+ 
+	private ArrayList<ImapServer> defaultServer = new ArrayList<ImapServer>();
 
-	public ArrayList<ImapServer> getMailservers()
+	public ArrayList<ImapServer> getDefaultServer()
 	{
-		return mailservers;
+		return defaultServer;
 	}
 
-	public void setMailservers(ArrayList<ImapServer> mailservers)
+	public void setDefaultServer(ArrayList<ImapServer> defaultserver)
 	{
-		this.mailservers = mailservers;
+		this.defaultServer = defaultserver;
 	}
 	
 }

@@ -3,16 +3,17 @@ package server;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-
+import java.util.logging.Level;
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import json.ConfigReader;
+import servers.SmsServer;
 
 public class Mapper{
 
@@ -115,5 +116,25 @@ public class Mapper{
 		o2.set("mapper", o1);
 		
 		return o2;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static void setConfig(JsonNode map)
+	{
+		ObjectMapper m = new ObjectMapper();
+		HashMap<String,HashMap<String, String>> maps = new HashMap<String,HashMap<String, String>>();
+		try
+		{
+			System.out.println(m.writeValueAsString(map));
+			maps = m.treeToValue(map, maps.getClass());
+			numToEmail = maps.get("SmsToEmail");
+			emailToNum = maps.get("EmailToSms");
+			
+			saveMap("config/maps.conf");
+			
+		} catch (JsonProcessingException e)
+		{
+			SmsServer.LOGGER.log(Level.WARNING,"Falure Saving Map Configurations",e);
+		}
 	}
 }

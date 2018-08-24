@@ -1,5 +1,6 @@
 package servers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.twilio.Twilio;
@@ -8,14 +9,11 @@ import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
-
+import json.ConfigReader;
 import server.Mapper;
 import server.TwilioAuthData;
 import spark.utils.IOUtils;
 import static spark.Spark.*;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -52,26 +50,7 @@ public class SmsServer implements server.Server{
 	//Create Single Instance
 	private SmsServer()
 	{
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			
-			//read json file data to String
-			byte[] jsonData = Files.readAllBytes(Paths.get("credentials/twilio.json"));
-			
-			//convert json string to object
-			TwilioAuthData twilio = objectMapper.readValue(jsonData, TwilioAuthData.class);
-			ACCOUNT_SID = twilio.getAccount_sid();
-			AUTH_TOKEN = twilio.getAuth_token();
-			
-		} catch (FileNotFoundException e) {
-			lastError = e;
-			lastErrorDate = System.currentTimeMillis();
-			LOGGER.log(Level.SEVERE, e.toString(), e);
-		} catch (IOException e) {
-			lastError = e;
-			lastErrorDate = System.currentTimeMillis();
-			LOGGER.log(Level.SEVERE, e.toString(), e);
-		}
+		load();
 	}
 	
 	public static SmsServer getInstance()
@@ -381,23 +360,47 @@ public class SmsServer implements server.Server{
 	 * TODO: authentication and the ID token as well as the number map and the autoreply map.
 	 * TODO: /config/sms.conf with that will read the number map and the auto reply map. optionaly specify the configuration file. 
 	 */
-	public void reload()
+	public boolean reload()
 	{
-		
+		return true;
 	}
 
 	@Override
-	public void save()
+	public boolean save()
 	{
-		// TODO Auto-generated method stub
-		
+		try
+		{
+			TwilioAuthData td = new TwilioAuthData();
+			td.setAccount_sid(ACCOUNT_SID);
+			td.setAuth_token(AUTH_TOKEN);
+			
+			ConfigReader.WriteConf(td, "credentials/twilio.json");
+			return true;
+		} catch (Exception e)
+		{
+			return false;
+		}
 	}
 
 	@Override
-	public void load()
+	public boolean load()
 	{
-		// TODO Auto-generated method stub
-		
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			
+			//read json file data to String
+			byte[] jsonData = Files.readAllBytes(Paths.get("credentials/twilio.json"));
+			
+			//convert json string to object
+			TwilioAuthData twilio = objectMapper.readValue(jsonData, TwilioAuthData.class);
+			ACCOUNT_SID = twilio.getAccount_sid();
+			AUTH_TOKEN = twilio.getAuth_token();
+		}catch (Exception e)
+		{
+			LOGGER.log(Level.WARNING, "Failed To load SMS configuration", e);
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -412,5 +415,20 @@ public class SmsServer implements server.Server{
 		o2.set("SmsServer", o1);
 		
 		return o2;
+	}
+
+	
+	@Override
+	public boolean setConfig(JsonNode config)
+	{
+		try
+		{
+			ACCOUNT_SID=config.get("AccountSID").asText();
+			AUTH_TOKEN=config.get("AuthToken").asText();	
+			return save();
+		}catch(Exception e)
+		{
+			return false;
+		}
 	}
 }
