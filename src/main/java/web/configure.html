@@ -256,7 +256,7 @@ function deleteMap(type)
     
     console.log(returnval);
     
-	$.post("/config.json",{"info":returnval}, function( data ) {
+	$.post("/config.json",{"data":JSON.stringify(returnval)}, function( data ) {
 		if(data.success) {
 			alert("success");
 	    }
