@@ -124,13 +124,12 @@ public class Kanban
 	}
 	private static void regesterUserToCompany(String puname, String pcompany)
 	{
-		// TODO Auto-generated method stub
-		
+		//TODO change return as well as database structure
 	}
 	private static String getCompanyPasswordByName(String ppassword)
 	{
 		// TODO Auto-generated method stub
-		return null;
+		return "password";
 	}
 	private static String getUserFromID(String auth)
 	{
