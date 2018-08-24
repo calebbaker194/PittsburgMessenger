@@ -11,7 +11,7 @@
 <body class="html-body bg-light">
 	<div id="configuration" class="window">
 		<div id="sms-config" class="section">
-			<h1 class="head-title">SMS Configuration</h1>
+			<button class="btn-large bg-primary" onclick="javascript:save()" style="float:right" type="button">Save</button><h1 class="head-title">SMS Configuration</h1>
         <div class="form-seperate">
           <div class="row">
              <label class="form">Account SID:</label>
@@ -125,7 +125,6 @@ window.onload = function() {
     	document.getElementById("sms-emailin-"+smsc).value=SmsToEmail[numem];
     	document.getElementById("sms-phonein-"+smsc).value=numem;
     }
-    save();
 	});
 };
 
