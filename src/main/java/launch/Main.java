@@ -1,16 +1,23 @@
 package launch;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.fasterxml.jackson.core.JsonGenerationException;
+import java.util.stream.Collectors;
+
+import org.mortbay.util.ajax.JSONObjectConvertor;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -67,9 +74,6 @@ public class Main{
     
 	public Main()
 	{
-		
-		
-		
 		LaunchConfig a = new LaunchConfig();
 		
 		a = ConfigReader.ReadConf(a.getClass(), "config/main.conf");
@@ -168,8 +172,10 @@ public class Main{
 		
 		post("/config.json" , (req,res) -> {
 			
+			 ObjectMapper mapper = new ObjectMapper();
+		      JsonNode jsonMap = mapper.readTree(req.raw().getInputStream());
 			
-			System.out.println(req.queryParams("data"));
+		      System.out.println(mapper.writeValueAsString(jsonMap));
 			
 			res.type("application/json");
 			return "{\"success\":true}";

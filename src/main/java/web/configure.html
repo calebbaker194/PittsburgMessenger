@@ -125,7 +125,7 @@ window.onload = function() {
     	document.getElementById("sms-emailin-"+smsc).value=SmsToEmail[numem];
     	document.getElementById("sms-phonein-"+smsc).value=numem;
     }
-    
+    save();
 	});
 };
 
@@ -238,7 +238,14 @@ function deleteMap(type)
     
     
     //TODO: add mapper data
+    //smsc mailc 
+    for (var i = 1; i <= mailc; i++) { 
+    	EmailToSms[document.getElementById("mail-emailin-"+i).value]=document.getElementById("mail-phonein-"+mailc).value;
+    }
     
+    for (var i = 1; i <= smsc; i++) { 
+    	SmsToEmail[document.getElementById("sms-phonein-"+i).value]=document.getElementById("sms-emailin-"+mailc).value;
+    }
     
     mapper.SmsToEmail = SmsToEmail;
     mapper.EmailToSms = EmailToSms;
@@ -249,7 +256,7 @@ function deleteMap(type)
     
     console.log(returnval);
     
-	$.post("/config.json",{"data":returnval}, function( data ) {
+	$.post("/config.json",{"info":returnval}, function( data ) {
 		if(data.success) {
 			alert("success");
 	    }

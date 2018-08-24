@@ -117,7 +117,7 @@ public class MailEngine implements Server{
 			lastErrorDate = System.currentTimeMillis();
 			//LOGGER.log(Level.SEVERE, e.toString(), e);
 		}
-		connect();
+		//connect();
 	}
 	
 	public static MailEngine getInstance()
@@ -167,13 +167,13 @@ public class MailEngine implements Server{
 		}
 		else
 		{
-			timer.schedule(new TimerTask() {	
-				@Override
-				public void run()
-				{
-					checkMail();
-				}
-			}, 1000,CHECK_INTERVAL); 
+//			timer.schedule(new TimerTask() {	
+//				@Override
+//				public void run()
+//				{
+//					checkMail();
+//				}
+//			}, 1000,CHECK_INTERVAL); 
 			isRunning = false;
 		}
 		if(SmsServer.getInstance() != null)
