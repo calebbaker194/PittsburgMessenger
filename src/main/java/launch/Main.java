@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import json.ConfigReader;
 import json.LaunchConfig;
+import kanban.Kanban;
 import server.Mapper;
 import server.Server;
 import servers.DriveServer;
@@ -101,6 +102,7 @@ public class Main{
 		
 		serverList = new Server[] {me,sms,dr};
 		InitMonitor();
+		Kanban k = new Kanban();
 		
 		me.regesterRequiredServers();
 		sms.regesterRequiredServers();
