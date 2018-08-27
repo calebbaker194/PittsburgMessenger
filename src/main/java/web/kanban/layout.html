@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Layout</title>
+<script src="/kanban/js/modernizr.custom.80028.js"></script>
+<link rel="stylesheet" href="alertify/alertify.css"/>
+<script src="/alertify/alertify.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
+</head>
+<style>
+
+
+@media screen and (max-width: 1400px) {
+  .left, .main, .right, body{
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+    overflow-horizontal: hidden;
+    margin: 0;
+  }
+
+.navbar {
+  overflow: hidden;
+  z-index: 100;
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  display: inline-block;
+  color: #f2f2f2;
+}
+
+table {
+	border: 1px;
+	border-collapse: collapse;
+	margin-top: 70px;
+	padding-tom: 0;
+	width: 100%;
+}
+
+td, th{
+	border: 1px solid grey;
+}
+.table-id {
+	text-align: left;
+	width: 33%;
+}
+.table-date {
+	text-align: center;
+	width: 33%;
+}
+.navbar a {
+  float: left;
+  color: #f2f2f2;
+  text-align: left;
+  padding: 3px 3px;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.navbar a:hover {
+  background: #ddd;
+  color: black;
+}
+
+.main {
+	margin-top: 4px;
+	position: relative;
+	z-index: 1;
+}
+.header {
+	text-align: center;
+	top: 26px;
+	width: 100%;
+	position: fixed;
+	background: #FFFFFF;
+	margin-bottom: 0;
+	z-index: 10;
+}
+.header * {
+	z-index: 101;
+}
+h2 {
+	background: #FFFFFF;
+	padding: 0;
+	margin: 0;
+	z-index: 10;
+}
+}
+</style>
+<body>
+<div class="navbar">
+	<a href="#home">Main  ></a>
+	<a href="#news">Items  ></a>
+	<a href="#contact">$itemid</a>
+</div>
+<div class="header">
+	<h2><span>Item:</span><span>$itemid</span><h2>
+</div>
+<div class="main">
+	<table>
+		<tr>
+			<th class="table-id">Bundle Id</th>
+			<th class="table-date">Created</th>
+			<th class="table-date">Cleared</th>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">no</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">no</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  		  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	  	<tr>
+	  		<td class="table-id">XTR564</td>
+	  		<td class="table-date">9/12</td>
+	  		<td class="table-date">6/12</td>
+	  	</tr>
+	</table>
+</div>
+</body>
+<script>
+	window.onload = function() {
+		//alertify.success('You Succsesfuly Scanned Bundle XTR56.'); 
+		alertify.error('No Such Bundle "XTR56".'); 
+	}
+</script>
+</html>

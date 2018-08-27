@@ -48,6 +48,7 @@ public class Kanban
 			if(id != null)
 			{
 				System.out.println("Scan ID: "+id);
+				res.cookie("ps-kanban-item-id", id);
 				res.redirect("/kanban/scan/success");
 			}
 			else
@@ -64,6 +65,13 @@ public class Kanban
 		
 		return res;
 	});
+	get("/test", (req,res) -> {
+		Map<String, Object> model = new HashMap<String, Object>();
+		return new VelocityTemplateEngine().render(
+				
+		new ModelAndView(model, "web/kanban/layout.html")
+		);
+	});
 	
 	get("/kanban/scan/success" , (req,res) -> {
 		String id = req.cookie("ps-kanban-item-id");
@@ -73,9 +81,10 @@ public class Kanban
 		if(name != null)
 		{
 			Map<String, Object> model = new HashMap<String, Object>();
+			model.put("item_id", id);
 			return new VelocityTemplateEngine().render(
 					
-			new ModelAndView(model, "web/kanban/scan.html")
+			new ModelAndView(model, "web/kanban/scan-success.html")
 			);
 		}
 		return false;

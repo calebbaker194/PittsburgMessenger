@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+	<h1>You have succesfully scanned</h1>
+	<h2>Item_ID=$item_id</h2>
+</body>
+<audio src="/wav/scanmp3.mp3" autoplay="true" id="success_sound"  ></audio>
+
+<script>
+window.onload() = function(){
+}
+function succesSound(soundObj) {
+	  var sound = document.getElementById(soundObj);
+	  sound.Play();
+}
+</script>
+</html>
