@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<div class="navbar">
+	<a href="/kanban">Main  &gt</a>
+	<a href="/kanban/items">Items</a>
+</div>
+<div class="header">
+	<h2>Headers</h2>
+</div>
+<div class="main">
+	<table>
+		<tr>
+			<th class="table-id">Item ID</th>
+			<th class="table-date">Stock</th>
+            <th class="table-date">Last Cleared</th>
+            <th class="table-date">On Order</th>
+	  	</tr>
+	  	<tr v-for="item in items">
+	  		<td class="table-id">{{ item.id }}</td>
+	  		<td class="table-date">{{ item.stock }}</td>
+            <td class="table-date">{{ item.lastcleared }}</td>
+            <td class="table-data">{{ item.onorder }}</td>
+	  	</tr>
+	</table>
+</div>
+</body>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+		items: [],
+	},
+	created () {
+		fetch('/kanban/items.json')
+		.then(response => response.json())
+		.then(json => {
+			this.items = json.items
+		})
+	}
+})
+</script>
+</html>

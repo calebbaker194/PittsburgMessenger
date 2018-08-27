@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Layout</title>
+<script src="/kanban/js/modernizr.custom.80028.js"></script>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
+<link rel="stylesheet" href="/kanban/css/item.css"/>
+<script src="/plugins/alertify.js"></script>
+<script src="/plugins/vue.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
+</head>
+<body>
+<script>var data="$bundle_id"</script>
+<div class="navbar">
+	<a href="/kanban">Main  &gt</a>
+	<a href="/kanban/items">Items  &gt</a>
+	<a href="/kanban/items/item?item_id=$item_id">$item_id</a>
+</div>
+<div class="header">
+	<h2><span>Item:</span><span>$item_id</span></h2>
+</div>
+<div class="main">
+	<table>
+		<tr>
+			<th class="table-id">Bundle Id</th>
+			<th class="table-date">Created</th>
+			<th class="table-date">Cleared</th>
+	  	</tr>
+	  	<tr v-for="bundle in bundles">
+	  		<td class="table-id">{{ bundle.id }}</td>
+	  		<td class="table-date">{{ bundle.created }}</td>
+	  		<td class="table-date">{{ bundle.cleared }}</td>
+	  	</tr>
+	</table>
+</div>
+</body>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+		bundles: [],
+	},
+	created () {
+		fetch('/kanban/bundles.json')
+		.then(response => response.json())
+		.then(json => {
+			this.bundles = json.bundles
+		})
+	}
+})
+</script>
+</html>
