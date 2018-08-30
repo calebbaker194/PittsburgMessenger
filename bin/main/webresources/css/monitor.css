@@ -1,0 +1,53 @@
+@charset "ISO-8859-1";
+.holder{
+  background : #b1bcce;
+  position : fixed;
+  width : 100%;
+  height : 100%;
+  overflow : auto;
+}
+
+#sms {
+	float:left;
+	margin-left: 10px;
+}
+
+#mail {
+	float:right;
+	margin-right: 10px;
+}
+.cmonitor {
+	background : #82b1ff;
+  	border: 1px solid grey; 
+	width: 47%;
+	margin: auto;
+	padding: 5px; 
+	box-shadow: 1px 2px 12px 2px grey; 
+	height : 45%;
+} 
+.cmonitor div { 
+	width: 100%; 
+	padding: 5px; 
+	margin-left: 15px;
+	margin-right: 15px;
+} 
+.ctitle { 
+	text-align: center; 
+} 
+.clabel { 
+	text-allign: left; 
+	width: 50%; 
+} 
+.cdata { 
+	width: 50%; 
+	text-allign: right; 
+	float:right; 
+} 
+.ctitle button { 
+	text-align: center;
+	margin-left: 10px; 
+	margin-right: 10px; 
+} 
+.ctitle h1 { 
+	border: 5px black 
+} 

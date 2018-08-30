@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.security.auth.login.FailedLoginException;
 
@@ -29,25 +30,18 @@ public class SQLEngine {
 	{
 		connectionString="jdbc:postgresql://"+host+":"+port+"/"+db;
 		Connection dbConnection;
-		try 
+		
+		try
 		{
-			//Should Only Call This once. Will Probably Move it to Main
-			Class.forName("org.postgresql.Driver");
-			
 			dbConnection = DriverManager.getConnection(connectionString,username,password);
 			dbConnection.close();
-			setPassword(password);
-			setUsername(username);
-			return "0";
-		} 
-		catch (ClassNotFoundException e1) 
+		} catch (SQLException e)
 		{
-			e1.printStackTrace();
-			return "Drivers: "+e1.getMessage();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return "SQL: "+e.getMessage();
+			Kanban.LOGGER.log(Level.SEVERE, "UNABLE TO LOG IN TO DATABASE ", e);
 		}
+		setPassword(password);
+		setUsername(username);
+		return "0";
 	}
 	
 	public static ResultList executeDBQuery(String query)

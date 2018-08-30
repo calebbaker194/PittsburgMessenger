@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
+<link rel="stylesheet" href="/kanban/css/theme.css"/>
+<link rel="stylesheet" href="/kanban/css/register.css"/>
+<script src="/plugins/alertify.js"></script>
+<script src="/plugins/vue.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
+</head>
+<body>
+<script>var registerd = $registerd</script>
+<div class="navbar">
+	<a href="/kanban">Home</a>
+</div>
+<div class="header">
+	<h2>Pittsburg Steel Kanban Login</h2>
+</div>
+<div class="main bg-tread">
+    <div class="login-form mid">
+        #if( $registered )
+        <form action="/kanban/login/submit" method="post">
+        #else
+        <form action="/kanban/register/submit" method="post">
+        #end
+            <input name="fname" type="text" placeholder="First Name">
+            <br/>
+            <input name="lname" type="text" placeholder="Last Name">
+            <br/>
+            <input name="password" type="text" placeholder="Password">
+            <br/>
+            <h4>Please Select Your Company</h4>
+            <select name="browser">
+                <option v-for="company in companies" value="{{ company.id }}">{{ company.name }}</option>
+            </select>
+            <br/>
+            <input v-if="registerd" type="text" placeholder="Company Password">
+            <br/>
+            <input type="submit" value="Regester">
+        </form>
+    </div>
+</div>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+		companies: [],
+	},
+	created () {
+		fetch('/kanban/companies.json')
+		.then(response => response.json())
+		.then(json => {
+			this.companies = json.companies
+		})
+	}
+})
+</script>
+</body>
+</html>

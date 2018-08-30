@@ -16,15 +16,17 @@
 	<table>
 		<tr>
 			<th class="table-id">Item ID</th>
+			<th class="table-id">Item Decpriton</th>
 			<th class="table-date">Stock</th>
-            <th class="table-date">Last Cleared</th>
-            <th class="table-date">On Order</th>
+			<th class="table-date">On Order</th>
+			<th class="table-date">Awating Conf</th>
 	  	</tr>
 	  	<tr v-for="item in items">
-	  		<td class="table-id">{{ item.id }}</td>
-	  		<td class="table-date">{{ item.stock }}</td>
-            <td class="table-date">{{ item.lastcleared }}</td>
-            <td class="table-data">{{ item.onorder }}</td>
+			<td class="table-id">{{ item.number }}</td>
+			<td class="table-date">{{ item.descripton }}</td>
+	  		<td class="table-date">{{ item.instock }}/{{item.basestock}}</td>
+			<td class="table-data">{{ item.onorder }}</td>
+			<td class="table-data">{{ item.onconf }}</td>
 	  	</tr>
 	</table>
 </div>

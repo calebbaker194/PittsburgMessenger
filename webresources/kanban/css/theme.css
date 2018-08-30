@@ -1,0 +1,55 @@
+@charset "ISO-8859-1";
+
+body {
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+    overflow-x: hidden;
+    margin: 0;
+}
+
+.navbar {
+  overflow: hidden;
+  z-index: 100;
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  display: inline-block;
+  color: #f2f2f2;
+}
+
+.bg-tread {
+	background-image: url("/kanban/images/tread-background.jpg")
+}
+
+.header {
+	text-align: center;
+	top: 26px;
+	width: 100%;
+	position: fixed;
+	background: #FFFFFF;
+    margin-bottom: 0;
+    padding-bottom: 0;
+	z-index: 10;
+}
+
+.header * {
+  z-index: 101;
+  padding: 0;
+  margin: 0;
+}
+
+.navbar a {
+  float: left;
+  color: #f2f2f2;
+  text-align: left;
+  padding: 3px 3px;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.navbar a:hover {
+  background: #ddd;
+  color: black;
+}

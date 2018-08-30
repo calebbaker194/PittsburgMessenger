@@ -14,6 +14,15 @@ public class ResultList extends ArrayList<HashMap<String,Object>>{
 		addAll(list);
 	}
 
+	/**
+	 * gets the value of the field specified by prop in the first elemet of the result set
+	 * @param field the column that you want the value from.
+	 */
+	public Object get(String field)
+	{
+		return get(0).get(field);
+	}
+	
 	public ArrayList<String> getColumnNames() {
 		Object[] it =  get(0).keySet().toArray();
 		ArrayList<String> rt = new ArrayList<String>();

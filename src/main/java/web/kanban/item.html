@@ -3,15 +3,18 @@
 <head>
 <meta charset="ISO-8859-1">
 <title>Layout</title>
-<script src="/kanban/js/modernizr.custom.80028.js"></script>
 <link rel="stylesheet" href="/plugins/alertify.css"/>
 <link rel="stylesheet" href="/kanban/css/item.css"/>
+<link rel="stylesheet" href="/kanban/css/theme.css"/>
 <script src="/plugins/alertify.js"></script>
 <script src="/plugins/vue.js"></script>
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body>
-<script>var data="$bundle_id"</script>
+<script>
+var scanned="$bundle_id";
+var item_id=$item_id;
+</script>
 <div class="navbar">
 	<a href="/kanban">Main  &gt</a>
 	<a href="/kanban/items">Items  &gt</a>
@@ -42,7 +45,7 @@ const app = new Vue({
 		bundles: [],
 	},
 	created () {
-		fetch('/kanban/bundles.json')
+		fetch('/kanban/bundles.json?item_id='+item_id)
 		.then(response => response.json())
 		.then(json => {
 			this.bundles = json.bundles

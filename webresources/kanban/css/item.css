@@ -1,29 +1,13 @@
 @charset "ISO-8859-1";
 @media screen and (max-width: 800px) {
-  .left, .main, .right, body{
+ .main, body{
     width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
-    overflow-horizontal: hidden;
+    overflow-x: hidden;
     margin: 0;
   }
-
-.navbar {
-  overflow: hidden;
-  z-index: 100;
-  background-color: #333;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  display: inline-block;
-  color: #f2f2f2;
-}
-
 table {
 	border: 1px;
 	border-collapse: collapse;
-	margin-top: 70px;
-	padding-tom: 0;
 	width: 100%;
 }
 
@@ -38,37 +22,13 @@ td, th{
 	text-align: center;
 	width: 33%;
 }
-.navbar a {
-  float: left;
-  color: #f2f2f2;
-  text-align: left;
-  padding: 3px 3px;
-  text-decoration: none;
-  font-size: 16px;
-}
-
-.navbar a:hover {
-  background: #ddd;
-  color: black;
-}
 
 .main {
-	margin-top: 4px;
+	margin-top: 70px;
 	position: relative;
 	z-index: 1;
 }
-.header {
-	text-align: center;
-	top: 26px;
-	width: 100%;
-	position: fixed;
-	background: #FFFFFF;
-	margin-bottom: 0;
-	z-index: 10;
-}
-.header * {
-	z-index: 101;
-}
+
 h2 {
 	background: #FFFFFF;
 	padding: 0;
