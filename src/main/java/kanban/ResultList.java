@@ -20,7 +20,10 @@ public class ResultList extends ArrayList<HashMap<String,Object>>{
 	 */
 	public Object get(String field)
 	{
-		return get(0).get(field);
+		if(size()>0)
+			return get(0).get(field);
+		else 
+			return null;
 	}
 	
 	public ArrayList<String> getColumnNames() {

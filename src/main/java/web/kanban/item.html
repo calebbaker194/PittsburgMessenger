@@ -2,12 +2,13 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
-<title>Layout</title>
+<title>Kanban Item</title>
 <link rel="stylesheet" href="/plugins/alertify.css"/>
 <link rel="stylesheet" href="/kanban/css/item.css"/>
 <link rel="stylesheet" href="/kanban/css/theme.css"/>
 <script src="/plugins/alertify.js"></script>
 <script src="/plugins/vue.js"></script>
+<script src="/kanban/js/soundplayer.js"></script>
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body>
@@ -23,7 +24,8 @@ var item_id=$item_id;
 <div class="header">
 	<h2><span>Item:</span><span>$item_id</span></h2>
 </div>
-<div class="main">
+<div id="sound"></div>
+<div class="main" id="app">
 	<table>
 		<tr>
 			<th class="table-id">Bundle Id</th>
@@ -45,12 +47,32 @@ const app = new Vue({
 		bundles: [],
 	},
 	created () {
+		var self = this;
+		if(scanned != null) {
+			alertify.success("Scanned Bundle:"+scanned);
+			playSound("kanban/sound/success");
+		}
 		fetch('/kanban/bundles.json?item_id='+item_id)
 		.then(response => response.json())
 		.then(json => {
-			this.bundles = json.bundles
+			self.bundles = json
+					for(i in self.bundles) {
+			var cleared=new Date(self.bundles[i].cleared);
+			var created=new Date(self.bundles[i].created);
+
+			var options = {hour:"2-digit" , minute:"2-digit", day:"2-digit" ,month:"2-digit"}
+			if(self.bundles[i].cleared == null) {
+				self.bundles[i].cleared = "Not Cleared";
+			}
+			else {
+				self.bundles[i].cleared = cleared.toLocaleDateString("en-US",options);
+			}
+			self.bundles[i].created = created.toLocaleDateString("en-US",options);
+		    self.bundles[i].id = pad(self.bundles[i].id);
+		}
 		})
 	}
 })
+function pad(n, width=7, z=0) {return (String(z).repeat(width) + String(n)).slice(String(n).length)}
 </script>
 </html>

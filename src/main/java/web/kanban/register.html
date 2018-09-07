@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
-<title>Insert title here</title>
+<title>$title</title>
 <link rel="stylesheet" href="/plugins/alertify.css"/>
 <link rel="stylesheet" href="/kanban/css/theme.css"/>
 <link rel="stylesheet" href="/kanban/css/register.css"/>
@@ -11,16 +11,16 @@
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body>
-<script>var registerd = $registerd</script>
+<script>var reg = $registerd</script>
 <div class="navbar">
 	<a href="/kanban">Home</a>
 </div>
 <div class="header">
 	<h2>Pittsburg Steel Kanban Login</h2>
 </div>
-<div class="main bg-tread">
+<div class="main bg-tread" id="app">
     <div class="login-form mid">
-        #if( $registered )
+        #if( $registerd )
         <form action="/kanban/login/submit" method="post">
         #else
         <form action="/kanban/register/submit" method="post">
@@ -32,8 +32,8 @@
             <input name="password" type="text" placeholder="Password">
             <br/>
             <h4>Please Select Your Company</h4>
-            <select name="browser">
-                <option v-for="company in companies" value="{{ company.id }}">{{ company.name }}</option>
+            <select name="kanbancust_id">
+                <option v-for="company in companies" :value="company.id">{{ company.name }}</option>
             </select>
             <br/>
             <input v-if="registerd" type="text" placeholder="Company Password">
@@ -47,12 +47,15 @@ const app = new Vue({
 	el: '#app',
 	data: {
 		companies: [],
+        registerd: true
 	},
 	created () {
+        var self = this;
+        this.registerd = reg
 		fetch('/kanban/companies.json')
 		.then(response => response.json())
 		.then(json => {
-			this.companies = json.companies
+			self.companies = json
 		})
 	}
 })
