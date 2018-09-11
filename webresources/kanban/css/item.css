@@ -51,14 +51,6 @@ table {
 td, th{
 	border: 1px solid grey;
 }
-.table-id {
-	text-align: left;
-	width: 20%;
-}
-.table-date {
-	text-align: center;
-	width: 20%;
-}
 
 .main {
 	margin-top: 70px;

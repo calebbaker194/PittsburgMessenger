@@ -8,6 +8,11 @@
 <link rel="stylesheet" href="/kanban/css/theme.css"/>
 <script src="/plugins/alertify.js"></script>
 <script src="/plugins/vue.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+<script src="/plugins/colResize.js"></script>
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body>
@@ -19,21 +24,25 @@
 	<h2>Items</h2>
 </div>
 <div class="main" id="app">
-	<table>
+	<table id="itemstable">
 		<tr>
-			<th class="table-id">Item ID</th>
-			<th class="table-id">Item Decpriton</th>
-			<th class="table-date">Stock</th>
-			<th class="table-date">On Order</th>
-			<th class="table-date">Awating Conf</th>
-	  	</tr>
-	  	<tr v-for="item in items">
-			<td class="table-id"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.number }}</a></td>
-			<td class="table-date">{{ item.description }}</td>
-	  		<td class="table-date">{{ item.instock }}/{{item.basestock}}</td>
-			<td class="table-data">{{ item.onorder }}</td>
-			<td class="table-data">{{ item.onconf }}</td>
-	  	</tr>
+			<th class="show-large"><div class="padded">Item #</div></th>
+			<th class="show-always"><div class="padded">Cust Item #</div></th>
+			<th class="show-always"><div class="padded">Item Decpriton</div></th>
+			<th class="show-always center"> In Stock</th>
+			<th class="show-large center">Base Stock</th>
+			<th class="show-always center">On Order</th>
+			<th class="show-large center">Awating Conf</th>
+		</tr>
+		<tr v-for="item in items">
+			<td class="show-large"><div class="padded"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.item_number }}</a></div></td>
+			<td class="show-always"><div class="padded"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.cust_number }}</a></div></td>
+			<td class="show-always"><div class="padded">{{ item.description }}</div></td>
+			<td class="show-always center"><div class="padded">{{ item.instock }}</div></td>
+			<td class="show-large center"><div class="padded">{{item.basestock}}</div></td>
+			<td class="show-always center"><div class="padded">{{ item.onorder }}</div></td>
+			<td class="show-large center"><div class="padded">{{ item.onconf }}</div></td>
+		</tr>
 	</table>
 </div>
 </body>
@@ -55,5 +64,6 @@ const app = new Vue({
 		})
 	}
 })
+$("#itemstable").colResizable({liveDrag:true});
 </script>
 </html>

@@ -9,6 +9,11 @@
 <script src="/plugins/alertify.js"></script>
 <script src="/plugins/vue.js"></script>
 <script src="/kanban/js/soundplayer.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+<script src="/plugins/colResize.js"></script>
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body>
@@ -16,29 +21,33 @@
 var scanned="$bundle_id";
 var item_id=$item_id;
 </script>
-<div class="navbar">
-	<a href="/kanban">Main  &gt</a>
-	<a href="/kanban/items">Items  &gt</a>
-	<a href="/kanban/items/item?item_id=$item_id">$item_id</a>
-</div>
-<div class="header">
-	<h2><span>Item:</span><span>$item_id</span></h2>
-</div>
+<div id="app">
+	<div class="navbar">
+		<a href="/kanban">Main  &gt</a>
+		<a href="/kanban/items">Items  &gt</a>
+		<a href="/kanban/items/item?item_id=$item_id">$item_number</a>
+	</div>
+	<div class="header">
+		<h2><span>Item:</span><span>$item_number</span></h2>
+	</div>
 
-<div class="main" id="app">
-	<div id="sound"></div>
-	<table>
-		<tr>
-			<th class="table-id">Bundle Id</th>
-			<th class="table-date">Created</th>
-			<th class="table-date">Cleared</th>
-	  	</tr>
-	  	<tr v-for="bundle in bundles">
-	  		<td class="table-id">{{ bundle.id }}</td>
-	  		<td class="table-date">{{ bundle.created }}</td>
-	  		<td class="table-date">{{ bundle.cleared }}</td>
-	  	</tr>
-	</table>
+	<div class="main">
+		<div id="sound"></div>
+		<table id="itemstable">
+			<tr>
+				<th class="show-always"><div class="padding">Bundle Id</div></th>
+				<th class="show-always"><div class="padding">Created</div></th>
+				<th class="show-always"><div class="padding">Cleared</div></th>
+				<th class="show-always"><div class="padding">Cleared By</div></th>
+			</tr>
+			<tr v-for="bundle in bundles">
+				<td class="show-always"><div class="padding">{{ bundle.id }}</div></td>
+				<td class="show-always"><div class="padding">{{ bundle.created }}</div></td>
+				<td class="show-always"><div class="padding">{{ bundle.cleared }}</div></td>
+				<td class="show-always"><div class="padding">{{ bundle.clearedby }}</div></td>  
+			</tr>
+		</table>
+	</div>
 </div>
 </body>
 <script>
@@ -82,8 +91,7 @@ const app = new Vue({
 	}
 })
 function pad(n, width=7, z=0) {return (String(z).repeat(width) + String(n)).slice(String(n).length)}
-function test(data)
-{playSound(data)}
 
+$("#itemstable").colResizable({liveDrag:true});
 </script>
 </html>

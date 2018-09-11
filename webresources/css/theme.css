@@ -69,6 +69,19 @@ body {
 [tabindex="-1"]:focus {
   outline: 0 !important; }
 
+
+
+@media only screen and (max-width: 812px) /* Mobile */{ 
+	.show-large{display:none;}
+	.show-small{display:inherit;}
+}
+@media only screen and (min-width: 980px) /* Desktop */ {
+	.show-small{display:none;}
+	.show-large{display:inherit;}
+}
+
+.currency
+
 hr {
   box-sizing: content-box;
   height: 0;

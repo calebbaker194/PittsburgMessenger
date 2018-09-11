@@ -10,6 +10,7 @@
   src="https://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
+<script src="/plugins/colResize.js"></script>
 <script src="/plugins/alertify.js"></script>
 <script src="/plugins/vue.js"></script>
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
@@ -25,62 +26,72 @@
                     <h2>{{shiptoname}}</h2>
                 </div>
                 <header><h3>Confirmations</h3></header>
-                <table>
+                <table id="conftable">
                     <thead>
-                        <th>Quote Number</th>
-                        <th>Item Count</th>
-                        <th>Estimated Cost</th>
-                        <th>Approve Order</th>
+                        <th class="show-always"><div class="padded">Quote #</div></th>
+                        <th class="show-large"><div class="padded">Item #</div></th>
+                        <th class="show-always"><div class="padded">Cust Item #</div></th>
+                        <th class="show-large"><div class="padded">Item Description</div></th>
+                        <th class="show-large center"><div class="padded">Estimated Cost</div></th>
+                        <th class="show-large center"><div class="padded">Action</div></th>
                     </thead>
                     <tbody v-for="confirm in confirmations">
                         <tr>
-                        <td><a>{{confirm.quhead_number}}</a></td>
-                        <td>{{confirm.itemcount}}</td>
-                        <td>{{confirm.estematedcost}}</td>
-                        <td><button v-bind:onclick="'convertQuote('+confirm.quhead_id+');'">Approve Order</button></td>
+                        <td class="show-always"><div class="padded"><a>{{confirm.quhead_number}}</a></div></td>
+                        <td class="show-large"><div class="padded"></div></td>
+                        <td class="show-always"><div class="padded"></div></td>
+                        <td class="show-large"><div class="padded"></div></td>
+                        <td class="show-large number"><div class="padded"><span class="left">$</span>{{confirm.estematedcost}}</div></td>
+                        <td class="show-large center"><div class="padded"><button v-bind:onclick="'convertQuote('+confirm.quhead_id+');'">Approve Order</button></div></td>
                         </tr>
                         <tr v-for="item in confirm.items">
-                        <td>{{item.quitem_linenumber}}</td>
-                        <td>{{item.item_number}}</td>
-                        <td>{{item.quitem_price}}</td>
-                        <td>{{item.item_descrip1}}</td>
+                        <td class="show-always"><div class="padded">&emsp;&emsp;-{{item.quitem_linenumber}}</div></td>
+                        <td class="show-large"><div class="padded">{{item.item_number}}</div></td>
+                        <td class="show-always"><div class="padded">{{item.cust_item_number}}</div></td>
+                        <td class="show-large"><div class="padded">{{item.item_descrip1}}</div></td>
+                        <td class="show-large number"><div class="padded"><span class="left">$</span>{{item.quitem_price}}</div></td>
+                        <td class="show-large center"><div class="padded"><button v-bind:onclick="'moveToDifferentQuote('+item.quitem_id+');'">Change Quote</button></div></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <div id="items">
                 <header><a href="kanban/items"><h3>Items</h3></a></header>
-                <table>
+                <table id="itemstable">
                     <tr>
-                        <th class="table-id">Item ID</th>
-                        <th class="table-id">Item Decpriton</th>
-                        <th class="table-date">Stock</th>
-                        <th class="table-date">On Order</th>
-                        <th class="table-date">Awating Conf</th>
+                        <th class="show-large"><div class="padded">Item #</div></th>
+                        <th class="show-always"><div class="padded">Cust Item #</div></th>
+                        <th class="show-always"><div class="padded">Item Decpriton</div></th>
+                        <th class="show-always center"> In Stock</th>
+                        <th class="show-large center">Base Stock</th>
+                        <th class="show-always center">On Order</th>
+                        <th class="show-large center">Awating Conf</th>
                     </tr>
                     <tr v-for="item in items">
-                        <td class="table-id"><a v-bind:href="'/kanban/items/'+item.item_id"><b>{{ item.number }}</b></a></td>
-                        <td class="table-date">{{ item.description }}</td>
-                        <td class="table-date">{{ item.instock }}/{{item.basestock}}</td>
-                        <td class="table-data">{{ item.onorder }}</td>
-                        <td class="table-data">{{ item.onconf }}</td>
+                        <td class="show-large"><div class="padded"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.item_number }}</a></div></td>
+                        <td class="show-always"><div class="padded"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.cust_number }}</a></div></td>
+                        <td class="show-always"><div class="padded">{{ item.description }}</div></td>
+                        <td class="show-always center"><div class="padded">{{ item.instock }}</div></td>
+                        <td class="show-large center"><div class="padded">{{item.basestock}}</div></td>
+                        <td class="show-always center"><div class="padded">{{ item.onorder }}</div></td>
+                        <td class="show-large center"><div class="padded">{{ item.onconf }}</div></td>
                     </tr>
                 </table>
             </div>
             <div id="employees">
                 <header><h3>Employees</h3></header>
-                <table>
+                <table id="emptable">
                     <tr>
-                        <th>Name</th>
-                        <th>Password</th>
-                        <th>Admin</th>
-                        <th>Remove</th>
+                        <th><div class="padded">Name</div></th>
+                        <th><div class="padded">Password</div></th>
+                        <th><div class="padded">Admin</div></th>
+                        <th><div class="padded">Remove</div></th>
                     </tr>
                     <tr v-for="employee in employees">
-                        <td>{{employee.lname}}, {{employee.fname}}</td>
-                        <td>{{employee.passwd}}</td>
-                        <td>{{employee.admin}}</td>
-                        <td><button onclick="removeEmployee();">Remove</button></td>
+                        <td><div class="padded">{{employee.lname}}, {{employee.fname}}</div></td>
+                        <td><div class="padded">{{employee.passwd}}</div></td>
+                        <td><div class="padded">{{employee.admin}}</div></td>
+                        <td><div class="padded"><button onclick="removeEmployee();">Remove</button></div></td>
                     </tr>
                 </table>
             </div>
@@ -113,7 +124,17 @@ const app = new Vue({
 			cache: 'no-store'  
 		})
         .then(response => response.json())
-        .then(json =>{ self.confirmations = json});
+        .then(json =>{ 
+            self.confirmations = json
+            for( it in self.confirmations) {
+                self.confirmations[it].estematedcost = 
+                self.confirmations[it].estematedcost.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
+                for( lineit in self.confirmations[it].items) {
+                    self.confirmations[it].items[lineit].quitem_price =
+                    self.confirmations[it].items[lineit].quitem_price.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
+                }
+            }
+        });
 
         fetch('/kanban/employees.json',{  
 			credentials: 'same-origin',  
@@ -141,5 +162,9 @@ function convertQuote(quoteId) {
     });
 
 }
+
+$("#conftable").colResizable({liveDrag:true});
+$("#itemstable").colResizable({liveDrag:true});
+$("#emptable").colResizable({liveDrag:true});
 </script>
 </html>

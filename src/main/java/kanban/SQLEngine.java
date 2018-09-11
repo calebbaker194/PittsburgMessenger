@@ -139,6 +139,16 @@ public class SQLEngine {
 	public static void setUsername(String username) {
 		SQLEngine.username = username;
 	}
+	/**
+	 * Single field query. made for getting one field using an id. 
+	 * If you use more then one field. it will only return the value of the first field
+	 * @param query The query for the value
+	 */
+	public static Object SFQ(String query)
+	{
+		ResultList r = executeDBQuery(query);
+		return r.get(r.get(0).keySet().iterator().next());
+	}
 
 	
 }

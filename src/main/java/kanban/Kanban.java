@@ -38,17 +38,14 @@ public class Kanban
 
 	get("/kanban" , (req,res) -> {
 		User user = getUserFromCookie(req.cookie("ps-kanban-auth"));
-		System.out.println("/kanban AUTH="+req.cookie("ps-kanban-auth")+" USER="+(user==null) + " " +(user != null));
 		if(user != null)
 		{
-			System.out.println("true");
 			Map<String, Object> model = new HashMap<String, Object>();
 			return new VelocityTemplateEngine().render(
 					
 					new ModelAndView(model, "web/kanban/kanban.html")
 			);
 		}
-		System.out.println("not right");
 		res.redirect("/kanban/register");
 		return res;
 	});
@@ -57,15 +54,12 @@ public class Kanban
 		String auth = req.cookie("ps-kanban-auth");
 		User user = getUserFromCookie(auth);
 		String bundleId = req.queryParams("ps-kanban-bundle-id");
-		/*<*/System.out.println("kanban/scan");/*>*/
 		if(user != null)
 		{
-			/*<*/System.out.println("kanban/scan has user");/*>*/
-			if(scanBundleIn(bundleId)) // This will Scan The Bundle In. And Return True on success
+			if(scanBundleIn(bundleId,user.getId())) // This will Scan The Bundle In. And Return True on success
 			{
 				try
 				{
-					/*<*/System.out.println("kanban/scan scanned bundle");/*>*/
 					String itemId = getItemIdFromBundle(bundleId);
 					if(itemId != null)
 					{
@@ -110,17 +104,16 @@ public class Kanban
 	});
 	
 	get("/kanban/items/:item" , (req,res) -> {
-		/*<*/System.out.println("kanban/item");/*>*/
 		String id = null;
 		String bundleId = req.queryParams("bundle_id");
 		id = req.params(":item");
-		System.out.println(id);
 		String auth = req.cookie("ps-kanban-auth");
 		User user = getUserFromCookie(auth);
 		if(user != null)
 		{
 			Map<String, Object> model = new HashMap<String, Object>();
 			model.put("item_id", id);
+			model.put("item_number", SQLEngine.SFQ("SELECT item_number FROM item WHERE item_id="+id));
 			if(bundleId != null)
 				model.put("bundle_id", bundleId);
 			else
@@ -151,7 +144,6 @@ public class Kanban
 	
 	get("/kanban/login" , (req,res) -> {
 		String auth = req.cookie("ps-kanban-auth");
-		System.out.println("/kanban/login AUTH="+auth);
 		User user = getUserFromCookie(auth);
 		String bundleId = req.queryParams("ps-kanban-bundle-id");
 		if(user == null )
@@ -182,7 +174,6 @@ public class Kanban
 			boolean success = response != null;
 			if(success)
 			{	
-				System.out.println(req.host());
 				res.cookie(req.host(), "/", "ps-kanban-auth", response, -1, true,true);
 				String bundle = req.queryParamOrDefault("ps-kanban-bundle-id", "-1");
 				if(bundle.equals("-1"))
@@ -241,8 +232,7 @@ public class Kanban
 	
 	//////////////////////////////// JSON DATA CALLS /////////////////////////////////////////////
 	get("/kanban/companies.json" , (req,res) -> {
-		String auth = req.cookie("ps-kanban-auth");
-		User user = getUserFromCookie(auth);
+		
 		res.type("application/json");
 		String query = "SELECT kanbancust_id AS id, " + 
 				"shipto_name AS name " + 
@@ -253,39 +243,40 @@ public class Kanban
 				"AND charass_char_id = 31";
 		
 		ResultList r = SQLEngine.executeDBQuery(query);
-		System.out.println(r);
 		return ConfigReader.printObject(r);
 	});
 	
 	get("/kanban/bundles.json" , (req,res) -> {
 		String auth = req.cookie("ps-kanban-auth");
-		System.out.println("/kanban/bundles AUTH="+auth);
-		res.type("application/json");
-
-		System.out.println("fetching bundles");
-		String itemid = req.queryParams("item_id");
-		String query="";
-		if(itemid == null)
+		User user = getUserFromCookie(auth);
+		
+		if(user != null)
 		{
-			String bundleid = req.queryParams("bundle_id");
-			if(bundleid == null)
+			res.type("application/json");
+			String itemid = req.queryParams("item_id");
+			String query="";
+			if(itemid == null)
 			{
-				return 1;
+				String bundleid = req.queryParams("bundle_id");
+				if(bundleid == null)
+				{
+					return 1;
+				}
+				itemid = getItemIdFromBundle(bundleid);
 			}
-			itemid = getItemIdFromBundle(bundleid);
+			
+			query = "SELECT kanbanlineitem_id as id, "
+					+ "kanbanlineitem_timeissued as created, "
+					+ "kanbanlineitem_timecleared as cleared, "
+					+ "kanbanlineitem_clearedby as clearedby "
+					+ "FROM pittsteelcustom.kanbanlineitem "
+					+ "LEFT JOIN pittsteelcustom.kanbanitem ON (kanbanlineitem_kanbanitem_id = kanbanitem_id) "
+					+ "WHERE kanbanitem_item_id = "+itemid;
+			
+			ResultList r = SQLEngine.executeDBQuery(query);
+			return ConfigReader.printObject(r);
 		}
-		
-		query = "SELECT kanbanlineitem_id as id, "
-				+ "kanbanlineitem_timeissued as created, "
-				+ "kanbanlineitem_timecleared as cleared "
-				+ "FROM pittsteelcustom.kanbanlineitem "
-				+ "LEFT JOIN pittsteelcustom.kanbanitem ON (kanbanlineitem_kanbanitem_id = kanbanitem_id) "
-				+ "WHERE kanbanitem_item_id = "+itemid;
-		
-		ResultList r = SQLEngine.executeDBQuery(query);
-		System.out.println(r);
-		return ConfigReader.printObject(r);
-
+		return null;
 	});
 	
 	get("/kanban/items.json" , (req,res) -> {
@@ -296,10 +287,11 @@ public class Kanban
 		{
 			String query = "SELECT kanbanitem_id, "
 					+ "item_id, "
-					+ "kanbanitem_number as number, "
+					+ "item_number, "
+					+ "kanbanitem_number as cust_number, "
 					+ "item_descrip1 AS description, "
 					+ "(SELECT COUNT(kanbanlineitem_id) "
-					+ "FROM pittsteelcustom.kanbanlineitem WHERE kanbanlineitem_kanbanitem_id = kanbanitem_id) "
+					+ "FROM pittsteelcustom.kanbanlineitem WHERE (kanbanlineitem_timecleared IS NULL) AND kanbanlineitem_kanbanitem_id = kanbanitem_id) "
 					+ " AS instock, "
 					+ "kanbanitem_stocklevel AS basestock, "
 					+ "pittsteelcustom.countItemOnOrder(kanbanitem_id) AS onorder, "
@@ -310,7 +302,6 @@ public class Kanban
 					+ "WHERE kanbancust_id = pittsteelcustom.getKanbanCustFromUserId("+user.getId()+");";
 			
 			ResultList r = SQLEngine.executeDBQuery(query);
-			System.out.println(r);
 			return ConfigReader.printObject(r);
 		}
 		return null;
@@ -323,7 +314,6 @@ public class Kanban
 		{
 			String query = "SELECT quhead_id, " + 
 					"quhead_number, " + 
-					"(SELECT count(quitem_id) FROM quitem WHERE quitem_quhead_id = quhead_id)|| '' AS itemcount , " + 
 					"(SELECT sum(quitem_price) FROM quitem WHERE quitem_quhead_id = quhead_id) AS estematedCost " + 
 					"FROM quhead " + 
 					"WHERE quhead_shipto_id =  " + 
@@ -332,21 +322,23 @@ public class Kanban
 			
 			ResultList r = SQLEngine.executeDBQuery(query);
 			
-			query = "SELECT quhead_id , " + 
-					"quitem_id , " + 
-					"quitem_linenumber, " + 
-					"item_number, " + 
-					"item_descrip1 , " + 
-					"quitem_price " + 
-					"FROM quitem LEFT JOIN quhead ON (quitem_quhead_id = quhead_id) " + 
-					"LEFT JOIN item ON (quitem_item_id = item_id) " + 
-					"WHERE quhead_shipto_id =  " + 
-					"(SELECT kanbancust_shipto_id FROM pittsteelcustom.kanbancust  " + 
-					"WHERE kanbancust_id=pittsteelcustom.getkanbancustfromuserid(1325)) " + 
-					"ORDER BY quhead_id, quitem_linenumber";
+			query = "SELECT quhead_id, \r\n" + 
+					"quitem_id,\r\n" + 
+					"kanbanitem_number AS cust_item_number,\r\n" + 
+					"quitem_linenumber,\r\n" + 
+					"item_number, \r\n" + 
+					"item_descrip1 , \r\n" + 
+					"quitem_price \r\n" + 
+					"FROM quitem LEFT JOIN quhead ON (quitem_quhead_id = quhead_id) \r\n" + 
+					"LEFT JOIN item ON (quitem_item_id = item_id)\r\n" + 
+					"LEFT JOIN pittsteelcustom.kanbancust ON (kanbancust_shipto_id = quhead_shipto_id)\r\n" + 
+					"LEFT JOIN pittsteelcustom.kanbanitem ON (kanbanitem_item_id = item_id AND kanbanitem_kanbancust_id = kanbancust_id)\r\n" + 
+					"WHERE quhead_shipto_id = \r\n" + 
+					"(SELECT kanbancust_shipto_id FROM pittsteelcustom.kanbancust \r\n" + 
+					"WHERE kanbancust_id=pittsteelcustom.getkanbancustfromuserid("+user.getId()+")) \r\n" + 
+					"ORDER BY quhead_id, quitem_linenumber;";
 			
 			r.addLevel(query,"quhead_id");
-			System.out.println(r);
 			return ConfigReader.printObject(r);
 		}
 		return null;
@@ -406,7 +398,7 @@ public class Kanban
 				+ "WHERE kanbanlineitem_id = "+bundleId);
 		return ""+r.get("item_id");
 	}
-	private static boolean scanBundleIn(String bundleId)
+	private static boolean scanBundleIn(String bundleId, long cntct_id)
 	{
 		if (getItemIdFromBundle(bundleId) == null)
 		{
@@ -414,7 +406,7 @@ public class Kanban
 		}
 		else 
 		{
-			SQLEngine.executeDBQuery("SELECT pittsteelcustom.scanBundleIn("+bundleId+")");
+			SQLEngine.executeDBQuery("SELECT pittsteelcustom.scanBundleIn("+bundleId+","+cntct_id+")");
 			return true;
 		}
 	}
@@ -437,7 +429,6 @@ public class Kanban
 				+ "FROM charass "
 				+ "WHERE charass_target_type = 'KBN' "
 				+ "AND charass_target_id = "+cust_id);
-		System.out.println(cust_id);
 		return (String) r.get("password");
 	}
 
@@ -469,7 +460,6 @@ public class Kanban
 	{
 		ResultList r = SQLEngine.executeDBQuery("SELECT pittsteelcustom.getCookieFromUser('"+u.getFname()+"','"+u.getLname()+"','"+u.getPassword()+"',"+kbc_id+") AS cookie");
 		if(r!=null && r.first()) {
-			System.out.println("SELECT pittsteelcustom.getCookieFromUser('"+u.getFname()+"','"+u.getLname()+"','"+u.getPassword()+"',"+kbc_id+") AS cookie");
 			return  (r.get("cookie")+"").equals("-1") ? null: r.get("cookie")+"";
 		}
 		else

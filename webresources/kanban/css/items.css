@@ -14,14 +14,7 @@ table {
 td, th{
 	border: 1px solid grey;
 }
-.table-id {
-	text-align: left;
-	width: 20%;
-}
-.table-date {
-	text-align: center;
-	width: 20%;
-}
+
 
 .main {
 	margin-top: 70px;
@@ -40,7 +33,7 @@ h2 {
  .main, body{
     width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
     overflow-x: hidden;
-    margin: 0;
+	margin: 0;
   }
 table {
 	border: 1px;
