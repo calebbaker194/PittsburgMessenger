@@ -9,24 +9,29 @@ table {
 	border: 1px;
 	border-collapse: collapse;
 	width: 100%;
+	font-weight: 400;
 }
 
 td, th{
 	border: 1px solid grey;
+	font-weight: 400;
 }
 .table-id {
 	text-align: left;
 	width: 33%;
+	font-weight: 400;
 }
 .table-date {
 	text-align: center;
 	width: 33%;
+	font-weight: 400;
 }
 
 .main {
-	margin-top: 70px;
+	margin-top: 25px;
 	position: relative;
 	z-index: 1;
+	font-weight: 400;
 }
 
 h2 {
@@ -34,6 +39,10 @@ h2 {
 	padding: 0;
 	margin: 0;
 	z-index: 10;
+}
+a {
+	color: black;
+	font-weight: bold;
 }
 }
 @media screen and (max-width: 2400px) {
@@ -53,23 +62,27 @@ td, th{
 }
 .table-id {
 	text-align: left;
-	width: 20%;
+	width: 33%;
 }
 .table-date {
 	text-align: center;
-	width: 20%;
+	width: 33%;
 }
 
 .main {
-	margin-top: 70px;
+	margin-top: 25px;
 	position: relative;
 	z-index: 1;
 }
 
-h2 {
+h2,h3 {
 	background: #FFFFFF;
-	padding: 0;
+	padding: 5px;
 	margin: 0;
 	z-index: 10;
+}
+a {
+	color: black;
+	font-weight: bold;
 }
 }

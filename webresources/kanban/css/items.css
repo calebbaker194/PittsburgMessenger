@@ -16,11 +16,11 @@ td, th{
 }
 .table-id {
 	text-align: left;
-	width: 33%;
+	width: 20%;
 }
 .table-date {
 	text-align: center;
-	width: 33%;
+	width: 20%;
 }
 
 .main {
@@ -53,11 +53,11 @@ td, th{
 }
 .table-id {
 	text-align: left;
-	width: 20%;
+	width: 33%;
 }
 .table-date {
 	text-align: center;
-	width: 20%;
+	width: 33%;
 }
 
 .main {

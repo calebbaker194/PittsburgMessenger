@@ -2,7 +2,13 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
-<title>Insert title here</title>
+<title>Kanban Items</title>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
+<link rel="stylesheet" href="/kanban/css/items.css"/>
+<link rel="stylesheet" href="/kanban/css/theme.css"/>
+<script src="/plugins/alertify.js"></script>
+<script src="/plugins/vue.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body>
 <div class="navbar">
@@ -10,9 +16,9 @@
 	<a href="/kanban/items">Items</a>
 </div>
 <div class="header">
-	<h2>Headers</h2>
+	<h2>Items</h2>
 </div>
-<div class="main">
+<div class="main" id="app">
 	<table>
 		<tr>
 			<th class="table-id">Item ID</th>
@@ -22,8 +28,8 @@
 			<th class="table-date">Awating Conf</th>
 	  	</tr>
 	  	<tr v-for="item in items">
-			<td class="table-id">{{ item.number }}</td>
-			<td class="table-date">{{ item.descripton }}</td>
+			<td class="table-id"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.number }}</a></td>
+			<td class="table-date">{{ item.description }}</td>
 	  		<td class="table-date">{{ item.instock }}/{{item.basestock}}</td>
 			<td class="table-data">{{ item.onorder }}</td>
 			<td class="table-data">{{ item.onconf }}</td>
@@ -38,10 +44,14 @@ const app = new Vue({
 		items: [],
 	},
 	created () {
-		fetch('/kanban/items.json')
+		var self = this;
+		fetch('/kanban/items.json',{  
+			credentials: 'same-origin',  
+			cache: 'no-store'  
+		})
 		.then(response => response.json())
 		.then(json => {
-			this.items = json.items
+			self.items = json
 		})
 	}
 })

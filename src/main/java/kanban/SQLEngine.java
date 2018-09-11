@@ -93,7 +93,7 @@ public class SQLEngine {
 					}
 					
 					ResultSetMetaData meta= results.getMetaData();
-						
+					
 						
 					int columns = meta.getColumnCount();
 					while(results.next())
@@ -107,12 +107,15 @@ public class SQLEngine {
 					}
 				
 					results.close();
-					
 					st.close();
 					dbConnection.close();
 					return new ResultList(resultArray);
 				} catch (SQLException e) {
-					System.err.println("Query Failed" + e.getMessage());
+					ResultList r = new ResultList();
+					r.addRow();
+					r.put("error",e.getMessage());
+					Kanban.LOGGER.log(Level.WARNING,"Query Failed: " + e.getMessage(),e);
+					return r;
 				}
 			}
 			else
@@ -120,10 +123,9 @@ public class SQLEngine {
 				throw new FailedLoginException("Failed to connect to the database");
 			}
 		} catch (FailedLoginException e) {
-			e.printStackTrace();
+			Kanban.LOGGER.log(Level.WARNING,e.toString(),e);
 			return null;
 		}
-		return null;
 	}
 	public static String getPassword() {
 		return password;
@@ -139,20 +141,4 @@ public class SQLEngine {
 	}
 
 	
-	/*
-	 * Querys a specific table to see if the database has been set up
-	 */
-	public static boolean isInit()
-	{
-		try
-		{
-			ResultList r1 = new ResultList(SQLEngine.executeDBQuery("SELECT * FROM verify LIMIT 1"));
-			return r1.first();
-		}
-		catch(Exception e)
-		{
-			return false;
-		}
-	}
-
 }

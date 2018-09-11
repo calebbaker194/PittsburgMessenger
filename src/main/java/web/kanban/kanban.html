@@ -3,8 +3,143 @@
 <head>
 <meta charset="ISO-8859-1">
 <title>Insert title here</title>
+<link rel="stylesheet" href="/kanban/css/theme.css"/>
+<link rel="stylesheet" href="/kanban/css/kanban.css"/>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+<script src="/plugins/alertify.js"></script>
+<script src="/plugins/vue.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body>
-
+    <div class="navbar">
+	    <a href="/kanban">Main</a>
+    </div>
+    <div id="app">
+        <div class="font-weight-normal">
+            <div id="confirmation" class="main">
+                <div style="text-align: center">
+                    <h2>{{shiptoname}}</h2>
+                </div>
+                <header><h3>Confirmations</h3></header>
+                <table>
+                    <thead>
+                        <th>Quote Number</th>
+                        <th>Item Count</th>
+                        <th>Estimated Cost</th>
+                        <th>Approve Order</th>
+                    </thead>
+                    <tbody v-for="confirm in confirmations">
+                        <tr>
+                        <td><a>{{confirm.quhead_number}}</a></td>
+                        <td>{{confirm.itemcount}}</td>
+                        <td>{{confirm.estematedcost}}</td>
+                        <td><button v-bind:onclick="'convertQuote('+confirm.quhead_id+');'">Approve Order</button></td>
+                        </tr>
+                        <tr v-for="item in confirm.items">
+                        <td>{{item.quitem_linenumber}}</td>
+                        <td>{{item.item_number}}</td>
+                        <td>{{item.quitem_price}}</td>
+                        <td>{{item.item_descrip1}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="items">
+                <header><a href="kanban/items"><h3>Items</h3></a></header>
+                <table>
+                    <tr>
+                        <th class="table-id">Item ID</th>
+                        <th class="table-id">Item Decpriton</th>
+                        <th class="table-date">Stock</th>
+                        <th class="table-date">On Order</th>
+                        <th class="table-date">Awating Conf</th>
+                    </tr>
+                    <tr v-for="item in items">
+                        <td class="table-id"><a v-bind:href="'/kanban/items/'+item.item_id"><b>{{ item.number }}</b></a></td>
+                        <td class="table-date">{{ item.description }}</td>
+                        <td class="table-date">{{ item.instock }}/{{item.basestock}}</td>
+                        <td class="table-data">{{ item.onorder }}</td>
+                        <td class="table-data">{{ item.onconf }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div id="employees">
+                <header><h3>Employees</h3></header>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Password</th>
+                        <th>Admin</th>
+                        <th>Remove</th>
+                    </tr>
+                    <tr v-for="employee in employees">
+                        <td>{{employee.lname}}, {{employee.fname}}</td>
+                        <td>{{employee.passwd}}</td>
+                        <td>{{employee.admin}}</td>
+                        <td><button onclick="removeEmployee();">Remove</button></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
 </body>
+<script>
+var lastPO = null;
+
+const app = new Vue({
+	el: '#app',
+	data: {
+        items: [],
+        employees: [],
+        confirmations: [],
+        shiptoname: 'shiptp',
+        
+	},
+	created () {
+		var self = this;
+		fetch('/kanban/items.json',{
+            credentials: 'same-origin',  
+            cache: 'no-store'  
+        })
+		.then(response => response.json())
+        .then(json => {self.items = json});
+        
+        fetch('/kanban/quotes.json',{  
+			credentials: 'same-origin',  
+			cache: 'no-store'  
+		})
+        .then(response => response.json())
+        .then(json =>{ self.confirmations = json});
+
+        fetch('/kanban/employees.json',{  
+			credentials: 'same-origin',  
+			cache: 'no-store'  
+		})
+        .then(response => response.json())
+        .then(json =>{self.employees = json});
+    }
+})
+
+function convertQuote(quoteId) {
+
+    alertify.prompt('Please Enter a PO#', lastPO ? lastPO : ""
+               , function(evt, value) { if(value && value != "")
+                 lastPO = value;
+                $.post("/kanban/convert.json",{"quhead_id":quoteId,"custpo":lastPO},function(data) {
+                    if(data.success)
+                        alertify.success("Order Confirmed");
+                    else
+                        alertify.error("Order Could not be confirmed. Please try again or email it@pittsburgsteel.com");
+                }).fail(function(xhr, status, error)  {
+                    alertify.error("An unknow error occured please try again");
+                    console.log(error);
+                });
+    });
+
+}
+</script>
 </html>

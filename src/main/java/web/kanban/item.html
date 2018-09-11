@@ -3,9 +3,9 @@
 <head>
 <meta charset="ISO-8859-1">
 <title>Kanban Item</title>
-<link rel="stylesheet" href="/plugins/alertify.css"/>
 <link rel="stylesheet" href="/kanban/css/item.css"/>
 <link rel="stylesheet" href="/kanban/css/theme.css"/>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
 <script src="/plugins/alertify.js"></script>
 <script src="/plugins/vue.js"></script>
 <script src="/kanban/js/soundplayer.js"></script>
@@ -24,8 +24,9 @@ var item_id=$item_id;
 <div class="header">
 	<h2><span>Item:</span><span>$item_id</span></h2>
 </div>
-<div id="sound"></div>
+
 <div class="main" id="app">
+	<div id="sound"></div>
 	<table>
 		<tr>
 			<th class="table-id">Bundle Id</th>
@@ -48,15 +49,22 @@ const app = new Vue({
 	},
 	created () {
 		var self = this;
-		if(scanned != null) {
-			alertify.success("Scanned Bundle:"+scanned);
+		if(scanned != null && scanned >=0) {
 			playSound("kanban/sound/success");
+			alertify.success("Scanned Bundle:"+scanned);
 		}
-		fetch('/kanban/bundles.json?item_id='+item_id)
+		else if(scanned == null || scanned == -1){
+			playSound("kanban/sound/fail");
+			alertify.error("Error Scanning In Bundle Please Try Again");
+		}
+		fetch('/kanban/bundles.json?item_id='+item_id,{  
+			credentials: 'same-origin',  
+			cache: 'no-store'  
+		})
 		.then(response => response.json())
 		.then(json => {
 			self.bundles = json
-					for(i in self.bundles) {
+		for(i in self.bundles) {
 			var cleared=new Date(self.bundles[i].cleared);
 			var created=new Date(self.bundles[i].created);
 
@@ -74,5 +82,8 @@ const app = new Vue({
 	}
 })
 function pad(n, width=7, z=0) {return (String(z).repeat(width) + String(n)).slice(String(n).length)}
+function test(data)
+{playSound(data)}
+
 </script>
 </html>

@@ -47,14 +47,15 @@ const app = new Vue({
 	el: '#app',
 	data: {
 		companies: [],
-        registerd: true
+        registerd: true,
 	},
 	created () {
         var self = this;
         this.registerd = reg
-		fetch('/kanban/companies.json')
-		.then(response => response.json())
-		.then(json => {
+		fetch('/kanban/companies.json',{  
+            credentials: 'same-origin',  
+            cache: 'no-store'  
+        }).then(response => response.json()).then(json => {
 			self.companies = json
 		})
 	}
