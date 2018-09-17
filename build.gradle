@@ -49,8 +49,14 @@ dependencies {
     // This is the logger used by spark
     compile group: "org.slf4j", name: "slf4j-simple", version: "1.7.25"
     
+    //Postgresql Drivers
     // https://mvnrepository.com/artifact/postgresql/postgresql
     compile group: 'postgresql', name: 'postgresql', version: '9.0-801.jdbc4'
+
+    //Java BCript. 
+    // https://mvnrepository.com/artifact/org.mindrot/jbcrypt
+    compile group: 'org.mindrot', name: 'jbcrypt', version: '0.4'
+
 
     //Dependency for javamail
     // https://mvnrepository.com/artifact/javax.mail/javax.mail-api

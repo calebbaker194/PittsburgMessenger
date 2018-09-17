@@ -37,4 +37,7 @@ public class User {
 	{
 		this.lname = lname;
 	}
+	public String toString() {
+		return lname+", "+fname+"\n"+password;
+	}
 }

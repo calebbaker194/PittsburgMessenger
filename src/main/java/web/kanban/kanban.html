@@ -50,7 +50,7 @@
                         <td class="show-always"><div class="padded">{{item.cust_item_number}}</div></td>
                         <td class="show-large"><div class="padded">{{item.item_descrip1}}</div></td>
                         <td class="show-large number"><div class="padded"><span class="left">$</span>{{item.quitem_price}}</div></td>
-                        <td class="show-large center"><div class="padded"><button v-bind:onclick="'moveToDifferentQuote('+item.quitem_id+');'">Change Quote</button></div></td>
+                        <td class="show-large center"><div class="padded"><button v-bind:onclick="'moveQuoteModal('+item.quitem_id+');'">Change Quote</button></div></td>
                         </tr>
                     </tbody>
                 </table>
@@ -96,10 +96,33 @@
                 </table>
             </div>
         </div>
+
+        <!-- ---------------------------------------Modals--------------------------------------- -->
+        <div class="modal" id="quitem-transfer-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div><span class="close">&times;</span><h3>Select Quote</h3></div>
+                </div>
+                <div class="modal-body">
+                    <p>Please select a quote to transfer the item to or leave it as default to create a new quote</p>
+                    <select id="quitem_number" name="quitem_number">
+                        <option value="-1">New Quote</option>
+                        <option v-for="confirm in confirmations" :value="confirm.quhead_id">{{ confirm.quhead_number }}</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="javasctipt:moveToDifferentQuote()">Submit</button>
+                </div>
+            </div>
+        </div>
     </div>
+
 </body>
 <script>
 var lastPO = null;
+var transModal = document.getElementById("quitem-transfer-modal");
+var transModalClose = document.getElementsByClassName("close")[0];
+var quitem_id = -1;
 
 const app = new Vue({
 	el: '#app',
@@ -157,10 +180,57 @@ function convertQuote(quoteId) {
                         alertify.error("Order Could not be confirmed. Please try again or email it@pittsburgsteel.com");
                 }).fail(function(xhr, status, error)  {
                     alertify.error("An unknow error occured please try again");
-                    console.log(error);
                 });
     });
 
+}
+
+function moveQuoteModal(pquitemid) {
+
+    if(app.confirmations.length == 1 && false) {
+        moveToDifferentQuote(-1);
+    }
+    else {
+        document.getElementById("quitem-transfer-modal").style.display = "block";
+        quitem_id=pquitemid;
+    }
+}
+
+function moveToDifferentQuote() {
+    var params = new Object();
+    params.quitem_id = quitem_id;
+    
+    var quhead_id = document.getElementById("quitem_number").value;
+
+    if(quhead_id != -1)
+        params.quhead_id = quhead_id;
+
+    document.getElementById("quitem-transfer-modal").style.display = "none";
+    quitem_id = -1;
+
+    $.post("/kanban/move-quote",params,function(data) {
+        if(data.success) {
+            location.reload();
+        }
+        else {
+            alertify.error("Transfering Item Failed: "+data.message);
+        }
+    }).fail(function(xhr, status, error) {
+        alertify.error("An unknown error has occured. Please Try Again");
+    });
+}
+
+document.getElementsByClassName("close")[0].onclick = function() {
+    document.getElementById("quitem-transfer-modal").style.display = "none";
+    quitem_id = -1;
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == document.getElementById("quitem-transfer-modal")) {
+        document.getElementById("quitem-transfer-modal").style.display = "none";
+        quitem_id = -1;
+    }
 }
 
 $("#conftable").colResizable({liveDrag:true});
