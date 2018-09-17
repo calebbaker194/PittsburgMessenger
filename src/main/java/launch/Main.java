@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import json.ConfigReader;
 import json.LaunchConfig;
+import kanban.Kanban;
 import server.Mapper;
 import server.Server;
 import servers.DriveServer;
@@ -66,15 +67,15 @@ public class Main{
 	public Main()
 	{
 		LaunchConfig a = new LaunchConfig();
-		
+//		
 		a = ConfigReader.ReadConf(a.getClass(), "config/main.conf");
-		
+//		
 		uname = a.getWebUser();
 		passwd = a.getWebPassword();
-		
+//		
 		staticFiles.externalLocation("webresources");	
-		
-		//Start Mail Server
+//		
+//		//Start Mail Server
 		//Start sms server
 		try
 		{
@@ -87,27 +88,28 @@ public class Main{
 		// Add Certificate for the web server. 
 		secure(a.getCertPath(), a.getCertPassword(),
 				null, null, false);
-		
-		apply();
-		
-		//Start Mail Server
-		me = MailEngine.getInstance();
-		
-		//Start sms server
-		sms = SmsServer.getInstance();
-		
-		//Intiate Drive
-		dr = DriveServer.getInstance();
-		
-		serverList = new Server[] {me,sms,dr};
-		InitMonitor();
-		
-		me.regesterRequiredServers();
-		sms.regesterRequiredServers();
-		dr.regesterRequiredServers();
-		
-		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
-		
+//		
+//		apply();
+//		
+//		//Start Mail Server
+//		me = MailEngine.getInstance();
+//		
+//		//Start sms server
+//		sms = SmsServer.getInstance();
+//		
+//		//Intiate Drive
+//		dr = DriveServer.getInstance();
+//		
+//		serverList = new Server[] {me,sms,dr};
+//		InitMonitor();
+		Kanban k = new Kanban();
+//		
+//		me.regesterRequiredServers();
+//		sms.regesterRequiredServers();
+//		dr.regesterRequiredServers();
+//		
+//		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
+//		
 		
 	}
 
