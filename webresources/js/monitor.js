@@ -5,13 +5,8 @@ function init() {
     google.charts.setOnLoadCallback(drawChart);
 
     function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Year', 'Sales', 'Expenses'],
-          ['2004',  1000,      400],
-          ['2005',  1170,      460],
-          ['2006',  660,       1120],
-          ['2007',  1030,      540]
-        ]);
+
+      $.get('monitor/chartdata.json',function(jsonData) {
 
         var options = {
           title: 'Company Performance',
@@ -20,13 +15,14 @@ function init() {
           'backgroundColor': 'transparent'
         };
 
-        var chart1 = new google.visualization.LineChart(document.getElementById('chart1'));
-        var chart2 = new google.visualization.LineChart(document.getElementById('chart2'));
-        var chart3 = new google.visualization.LineChart(document.getElementById('chart3'));
-        chart1.draw(data, options);
-        chart2.draw(data, options);
-        chart3.draw(data, options);
-      }
+
+        for(var i in jsonData.charts) {
+          var chart = new google.visualization.LineChart(document.getElementById(i));
+          chart.draw(google.visualization.arrayToDataTable(jsonData[i]), options);
+        }
+
+      });
+    }
 }
 
 function start(index) {

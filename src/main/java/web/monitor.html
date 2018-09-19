@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<title>Monitor</title>
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="css/theme.css"/> 
 	<link rel="stylesheet" href="css/monitor.css"/>
 	<script src="js/monitor.js"></script>
 </head>
 <body class="html-body bg-light">
+	<div>
 		<div class="row">
 			#set( $count = 1 )
 			#foreach( $server in $serverList )
@@ -42,9 +48,9 @@
 					</div>
 				</div>
 				<div class="half-row">
-					<button type="button" onclick="start($count)" class="bttn bg-primary">Start</button>
-					<button type="button" onclick="restart($count)" class="bttn bg-primary">Restart</button>
-					<button type="button" onclick="stop($count)" class="bttn bg-primary">Stop</button>
+					<button type="button" onclick="javascript:start($count)" class="bttn bg-primary">Start</button>
+					<button type="button" onclick="javascript:restart($count)" class="bttn bg-primary">Restart</button>
+					<button type="button" onclick="javascript:stop($count)" class="bttn bg-primary">Stop</button>
 				</div>
 			 </div>
 			 <div class="clear" ></div>

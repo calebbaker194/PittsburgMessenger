@@ -91,7 +91,7 @@ public class Main{
 		apply();
 		
 		//Start Mail Server
-		me = MailEngine.getInstance();
+		//me = MailEngine.getInstance();
 		
 		//Start sms server
 		sms = SmsServer.getInstance();
@@ -102,8 +102,8 @@ public class Main{
 		serverList = new Server[] {me,sms,dr};
 		InitMonitor();
 		
-		me.regesterRequiredServers();
-		sms.regesterRequiredServers();
+		//me.regesterRequiredServers();
+		//sms.regesterRequiredServers();
 		dr.regesterRequiredServers();
 		
 		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
@@ -140,8 +140,11 @@ public class Main{
 					
 					for(Server s:serverList)
 					{
-						ObjectNode t = s.getConfig();
-						nodes.put(t.fieldNames().next(),t);
+						if(s != null) 
+						{
+							ObjectNode t = s.getConfig();
+							nodes.put(t.fieldNames().next(),t);
+						}
 					}
 					ObjectNode t = Mapper.getConfig();
 					nodes.put("mapper", t);
@@ -181,8 +184,12 @@ public class Main{
 				    JsonNode smsServer = jsonConfig.get("SmsServer");
 				    JsonNode map = jsonConfig.get("mapper");
 				    
+				    if(me != null) {
 				    me.setConfig(mailServer);
+				    }
+				    if(sms != null) {
 				    sms.setConfig(smsServer);
+				    }
 				    Mapper.setConfig(map);
 					
 					res.type("application/json");
@@ -279,6 +286,22 @@ public class Main{
 			}
 			res.redirect("/login");
 			return res;
+		});
+		
+		get("/monitor/chartdata.json", (req, res) -> {
+			res.type("application/json");
+			
+			ObjectMapper o = new ObjectMapper();
+			ObjectNode data = o.createObjectNode();
+			
+			for(Server s : serverList) 
+			{
+				if(s != null)
+				{
+					
+				}
+			}
+			return "";
 		});
 		
 		post("/restart",(req, res) -> {
