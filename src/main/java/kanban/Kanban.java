@@ -83,6 +83,10 @@ public class Kanban
 		String auth = req.cookie("ps-kanban-auth");
 		User user = getUserFromCookie(auth);
 		String bundleId = req.queryParams("bundle_id");
+		// LEGACY DEMO CODE
+		if(bundleId == null)
+			bundleId = req.queryParams("ps-kanban-bundle-id");
+		//
 		if(user != null)
 		{
 			if(scanBundleIn(bundleId,user.getId())) // This will Scan The Bundle In. And Return True on success
