@@ -117,6 +117,11 @@ public class Main{
 	private void InitMonitor()
 	{
 		get("/" , (req,res) -> {
+			
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -143,6 +148,10 @@ public class Main{
 		
 		get("/config.json" , (req,res) -> {
 		
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -179,8 +188,11 @@ public class Main{
 			return res;
 		});
 		
-		post("/config.json" , (req,res) -> {
-			
+		post("/config.json" , (req,res) -> {		
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}	
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -205,6 +217,10 @@ public class Main{
 		});
 		
 		get("/configure", (req,res) -> {
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
 			
 			if(req.session(false) != null)
 			{
@@ -222,6 +238,12 @@ public class Main{
 		});
 		
 		get("/logout", (req,res) -> {
+			
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
+			
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -237,6 +259,11 @@ public class Main{
 		});
 		
 		post("/login", (req,res) -> {
+			
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
 			
 			String username = req.queryParams("username");
 			String password = req.queryParams("password");
@@ -258,6 +285,12 @@ public class Main{
 		});
 		
 		get("/login" , (req,res) -> {
+			
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
+			
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -275,6 +308,12 @@ public class Main{
 		});
 		
 		get("/monitor", (req, res) -> {
+			
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
+			
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -293,6 +332,11 @@ public class Main{
 		});
 		
 		post("/restart",(req, res) -> {
+			
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -308,6 +352,11 @@ public class Main{
 			return false;
 		});
 		post("/stop",(req, res) -> {
+			
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -323,6 +372,10 @@ public class Main{
 			return false;
 		});
 		post("/start",(req, res) -> {
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
