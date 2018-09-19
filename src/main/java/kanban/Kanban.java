@@ -518,7 +518,7 @@ public class Kanban
 	 * @param cookie : the cookie to associate the user
 	 * @return the User associated with the cookie
 	 */
-	private static User getUserFromCookie(String cookie)
+	public static User getUserFromCookie(String cookie)
 	{
 		ResultList r = SQLEngine.executeDBQuery("SELECT " + 
 				"cntct_id AS id, " + 

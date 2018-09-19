@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import json.ConfigReader;
 import json.LaunchConfig;
 import kanban.Kanban;
+import kanban.User;
 import server.Mapper;
 import server.Server;
 import servers.DriveServer;
@@ -88,28 +89,28 @@ public class Main{
 		// Add Certificate for the web server. 
 		secure(a.getCertPath(), a.getCertPassword(),
 				null, null, false);
-//		
-//		apply();
-//		
-//		//Start Mail Server
-//		me = MailEngine.getInstance();
-//		
-//		//Start sms server
-//		sms = SmsServer.getInstance();
-//		
-//		//Intiate Drive
-//		dr = DriveServer.getInstance();
-//		
-//		serverList = new Server[] {me,sms,dr};
-//		InitMonitor();
+		
+		apply();
+		
+		//Start Mail Server
+		me = MailEngine.getInstance();
+		
+		//Start sms server
+		sms = SmsServer.getInstance();
+		
+		//Intiate Drive
+		dr = DriveServer.getInstance();
+		
+		serverList = new Server[] {me,sms,dr};
+		InitMonitor();
 		Kanban k = new Kanban();
-//		
-//		me.regesterRequiredServers();
-//		sms.regesterRequiredServers();
-//		dr.regesterRequiredServers();
-//		
-//		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
-//		
+		
+		me.regesterRequiredServers();
+		sms.regesterRequiredServers();
+		dr.regesterRequiredServers();
+		
+		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
+		
 		
 	}
 
@@ -127,9 +128,17 @@ public class Main{
 					);
 				}
 			}
-
+			User user = Kanban.getUserFromCookie(req.cookie("ps-kanban-auth"));
+			if(user == null)
+			{
 				res.redirect("/login");
 				return res;
+			}
+			else
+			{
+				res.redirect("/kanban");
+				return res;
+			}
 		});
 		
 		get("/config.json" , (req,res) -> {
