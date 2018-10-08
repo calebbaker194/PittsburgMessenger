@@ -24,21 +24,14 @@
     left:0; right:0;
     height: 80px;
     text-align: center;
-   	background : #82b1ff;
 }
 .body {
     position: absolute;
     left:170px; top:80px; right:0; bottom:0;
     overflow : hidden;
-    background : #b1bcce;
+    background : blue;
 }
 div#pageview {
   height: 100%;
   width: 100%;
-  background : #b1bcce;
-}
-.pageview {
-  height: 100%;
-  width: 100%;
-  background : #b1bcce;
 }

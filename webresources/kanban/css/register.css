@@ -1,0 +1,28 @@
+@charset "ISO-8859-1";
+
+.login-form {
+	text-align: center;
+    background: #404040;
+    margin: auto;
+    margin-top: 30%;
+	width: 60%;
+	padding: 20px;
+	height: 30%;
+}
+.login-form h4 {
+	color: #ffffff;
+	padding-bottom: 0;
+	margin-bottom: 0;
+	padding-left: 0;
+	padding-right: 0;
+}
+.main {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+body {
+    background: #333;
+}

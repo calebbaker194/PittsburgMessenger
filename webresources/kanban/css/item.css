@@ -1,0 +1,67 @@
+@charset "ISO-8859-1";
+@media screen and (max-width: 800px) {
+ .main, body{
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+    overflow-x: hidden;
+    margin: 0;
+  }
+table {
+	border: 1px;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+td, th{
+	border: 1px solid grey;
+}
+.table-id {
+	text-align: left;
+	width: 33%;
+}
+.table-date {
+	text-align: center;
+	width: 33%;
+}
+
+.main {
+	margin-top: 70px;
+	position: relative;
+	z-index: 1;
+}
+
+h2 {
+	background: #FFFFFF;
+	padding: 0;
+	margin: 0;
+	z-index: 10;
+}
+}
+@media screen and (max-width: 2400px) {
+ .main, body{
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+    overflow-x: hidden;
+    margin: 0;
+  }
+table {
+	border: 1px;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+td, th{
+	border: 1px solid grey;
+}
+
+.main {
+	margin-top: 70px;
+	position: relative;
+	z-index: 1;
+}
+
+h2 {
+	background: #FFFFFF;
+	padding: 0;
+	margin: 0;
+	z-index: 10;
+}
+}

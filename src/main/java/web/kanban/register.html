@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>title</title>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
+<link rel="stylesheet" href="/kanban/css/theme.css"/>
+<link rel="stylesheet" href="/kanban/css/register.css"/>
+<script src="/plugins/alertify.js"></script>
+<script src="/plugins/vue.js"></script>
+<script src="/kanban/js/jquery.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
+</head>
+<body>
+<script>
+    var reg = $registerd;
+    var bundleId = $bundle_id;
+</script>
+<div class="navbar">
+	<a href="/kanban">Home</a>
+</div>
+<div class="header">
+	<h2>Pittsburg Steel Kanban Login</h2>
+</div>
+<div class="main bg-tread" id="app">
+    <div class="login-form mid">
+        <form name="regForm" action="javascript:submitForm(regForm)">
+            <span v-if="error"><p>{{ message }}</p></span>
+            <input name="fname" type="text" placeholder="First Name">
+            <br/>
+            <input name="lname" type="text" placeholder="Last Name">
+            <br/>
+            <input name="password" type="text" placeholder="Password">
+            <br/>
+            <h4>Please Select Your Company</h4>
+            <select name="kanbancust_id">
+                <option v-for="company in companies" :value="company.id">{{ company.name }}</option>
+            </select>
+            <br/>
+            <input v-if="!registerd" name="kanbancust_password" type="text" placeholder="Company Password">
+            <br/>
+            <button type="submit"><span v-if="registerd">Login</span><span v-else>Register</span></button>
+            <br>
+            <span v-if="registerd">
+                <span v-if="bundleId == '-1'">Not Regester? <a href="/kanban/register">Register Now</a></span>
+                <span v-else>Not Regester? <a href="/kanban/register?bundle_id=$bundle_id">Register Now</a></span>
+            </span>
+            <span v-else >
+                <span v-if="bundleId == '-1'">Already Regesterd? <a href="/kanban/login">Login</a></span>
+                <span v-else>Already Regesterd? <a href="/kanban/login?bundle_id=$bundle_id">Login</a></span>
+            </span>
+        </form>
+    </div>
+</div>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+		companies: [],
+        registerd: true,
+        bundleId: null,
+        error: false,
+        unknown: false,
+        message: null,
+	},
+	created () {
+        var self = this;
+        this.registerd = reg;
+        this.bundleId = bundleId;
+		fetch('/kanban/companies.json',{  
+            credentials: 'same-origin',  
+            cache: 'no-store'  
+        }).then(response => response.json()).then(json => {
+			self.companies = json
+		})
+    }
+})
+submitForm = function(form) {
+
+    var path = reg ? "login" : "register";
+    var parseForm = $(form).serializeArray();
+
+    if(window.bundleId != "-1")
+        parseForm.push({name: "bundle_id", value: window.bundleId})
+
+    app.error = false;
+    app.unknown = false;
+    
+    $.post(("/kanban/"+path+"/submit"),$.param(parseForm),function(data){
+        
+        if(data.success) {
+            window.location=data.redir;
+        }
+        else if(data.user) {
+            window.location="/kanban";
+        }
+        else if(data.excede) {
+            app.error = true;
+            app.message = "You have exceded the number of failed attempts from this ip address.";
+        }
+        else {
+            app.error = true;
+            app.message = "Login incorrect";
+        }
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        app.error = true;
+        app.message = "An unknown error occured. Please Try again";
+    });
+}
+</script>
+</body>
+</html>

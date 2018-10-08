@@ -7,9 +7,8 @@
  */
 
 // Apply the java-library plugin to add support for Java Library
-apply plugin: 'java-library'
-apply plugin: 'application'
 apply plugin: 'java'
+apply plugin: 'application'
 mainClassName = 'launch.Main'
 
 sourceCompatibility = 1.8
@@ -24,13 +23,10 @@ repositories {
 dependencies {
 	
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'org.apache.commons:commons-math3:3.6.1'
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    implementation 'com.google.guava:guava:23.0'
 
     // Use JUnit test framework
-    testImplementation 'junit:junit:4.12'
     
     //JSON
     compile (
@@ -49,6 +45,15 @@ dependencies {
     // This is the logger used by spark
     compile group: "org.slf4j", name: "slf4j-simple", version: "1.7.25"
     
+    //Postgresql Drivers
+    // https://mvnrepository.com/artifact/postgresql/postgresql
+    compile group: 'postgresql', name: 'postgresql', version: '9.0-801.jdbc4'
+
+    //Java BCript. 
+    // https://mvnrepository.com/artifact/org.mindrot/jbcrypt
+    compile group: 'org.mindrot', name: 'jbcrypt', version: '0.4'
+
+
     //Dependency for javamail
     // https://mvnrepository.com/artifact/javax.mail/javax.mail-api
 	compile group: "com.sun.mail", name: "javax.mail", version: "1.6.1"
@@ -58,4 +63,11 @@ dependencies {
 	compile 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
 	compile 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
 }
-
+jar {
+    manifest {
+        attributes 'Main-Class': 'launch.Main'
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

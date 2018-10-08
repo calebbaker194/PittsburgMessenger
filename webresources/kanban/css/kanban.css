@@ -1,0 +1,75 @@
+@charset "ISO-8859-1";
+
+@media screen and (max-width: 800px) {
+ .main, body{
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+    overflow-x: hidden;
+    margin: 0;
+  }
+table {
+	border: 1px;
+	border-collapse: collapse;
+	width: 100%;
+	font-weight: 400;
+}
+
+td, th{
+	border: 1px solid grey;
+	font-weight: 400;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+.main {
+	margin-top: 25px;
+	position: relative;
+	z-index: 1;
+	font-weight: 400;
+}
+
+h2 {
+	background: #FFFFFF;
+	padding: 0;
+	margin: 0;
+	z-index: 10;
+}
+a {
+	color: black;
+	font-weight: bold;
+}
+}
+@media screen and (max-width: 2400px) {
+ .main, body{
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+    overflow-x: hidden;
+    margin: 0;
+  }
+table {
+	border: 1px;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+td {
+	border: 1px solid grey;
+}
+th {
+	border: 1px solid grey;
+}
+.main {
+	margin-top: 25px;
+	position: relative;
+	z-index: 1;
+}
+
+h2,h3 {
+	background: #FFFFFF;
+	padding: 5px;
+	margin: 0;
+	z-index: 10;
+}
+a {
+	color: black;
+	font-weight: bold;
+}
+}
