@@ -1617,9 +1617,7 @@ select.form-control-lg:not([size]):not([multiple]), .input-group-lg > select.for
 	border-radius: 3px;
 	box-shadow: 1px 2px 12px 2px #333;
 }
-.html-body{
-	overflow: hidden;
-}
+
 .btn {
   display: inline-block;
   font-weight: 200;

@@ -30,6 +30,7 @@ import javax.mail.*;
 import javax.mail.Flags.Flag;
 import javax.mail.Message.RecipientType;
 import org.eclipse.jetty.util.BlockingArrayQueue;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,12 +52,14 @@ public class MailEngine implements Server{
 	public boolean locked = false;
 	public long locktime = System.currentTimeMillis();
 	private Exception lastError = null;
+	private long startTime = 0l;
 	private ExecutorService threadPool;
 	private ArrayDeque<Future<String>> threadStatus= new ArrayDeque<Future<String>>(); 
 	public static final Logger LOGGER = Logger.getLogger(MailEngine.class.getName());
 	private static final boolean DEBUG = true;
 	public String mailStrProt = "imap";
 	Thread t;
+	private Timer st = null;
 	private Timer timer = new Timer();
 	private SmsServer sms = null;
 	private boolean isRunning = false;
@@ -69,9 +72,14 @@ public class MailEngine implements Server{
 	public boolean Continue = true;
 	public static final String DEFAULT_REPLY_NUMBER="ALL";
 	public static String DEFAULT_FROM_EMAIL = "";
-	
+	public boolean workingConfig = false;
 	public static MailEngine instance = null;
-
+	public int[][] stats  = {{10,1},
+							 {2,1},
+							 {1,2},
+							 {0,0},
+							 {3,2}};
+	
 	private MailEngine()
 	{
 	    load();
@@ -107,13 +115,12 @@ public class MailEngine implements Server{
 			
 			LOGGER.log(Level.INFO, ("Folder Structure is Good: " + isCreated));
 			LOGGER.info("Mail Server Is running");
-			
+			workingConfig=true;
 			
 		} catch (MessagingException e)
 		{
-			e.printStackTrace();
-			if (MailEngine.DEBUG)
-				e.printStackTrace();
+			LOGGER.warning("Configurations invalid Mail Server will not start");
+			workingConfig = false;
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
 			//LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -127,7 +134,6 @@ public class MailEngine implements Server{
 		{
 			instance = new MailEngine();
 			instance.setRunning(false);
-			instance.initMailServer();
 			instance.start();
 		}
 		
@@ -162,12 +168,42 @@ public class MailEngine implements Server{
 	
 	public Boolean start()
 	{
-		if(instance!= null && isRunning)
+		startTime = System.currentTimeMillis();
+		//Stats timer
+		if(st != null)
+		{
+			st.cancel();
+		}
+		st = new Timer();
+		st.schedule( new TimerTask() {
+			
+			@Override
+			public void run()
+			{
+				for(int x = 0;x<4;x++)
+				{
+					stats[x][0] = stats[x+1][0];
+					stats[x][1] = stats[x+1][1];
+				}
+				stats[4][0]=0;
+				stats[4][1]=0;
+			}
+		}, 30000, 120000);// 2 minutes
+		
+		initMailServer();
+		
+		if(!workingConfig)
+		{
+			return false;
+		}
+		
+		if(isRunning)
 		{
 			return true;
 		}
 		else
 		{
+			timer.cancel();
 			timer.schedule(new TimerTask() {	
 				@Override
 				public void run()
@@ -185,8 +221,8 @@ public class MailEngine implements Server{
 	public Boolean stop()
 	{
 		Continue = false;
+		isRunning = false;
 		timer.cancel();
-		instance = null;
 		return true;
 	}
 
@@ -210,7 +246,16 @@ public class MailEngine implements Server{
 	public void sendEmail(String toEmailAddress, String fromEmailAddress, String subject, String emailBody,
 			int AddressIndex, String id, HashMap<String, byte[]> attachments)
 	{
-
+		StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+		if(stackTraceElements[2] != null  && stackTraceElements[2].getClassName().equals("SmsServer"))
+		{
+			stats[4][1]++;
+		}
+		else
+		{
+			stats[4][0]++;
+		}
+		
 		// Index to decide what email address will send the mail
 		int index = AddressIndex;
 
@@ -623,11 +668,9 @@ public class MailEngine implements Server{
 	}
 
 	@Override
-	public String getLastErrorDate()
+	public long getLastErrorDate()
 	{
-		org.joda.time.format.DateTimeFormatter f = DateTimeFormat.forPattern("hh:mm:ss dd/MMM/YYYY");
-		org.joda.time.DateTime dateTime = new org.joda.time.DateTime(lastErrorDate);
-		return dateTime.toString(f);
+		return lastErrorDate;
 	}
 	
 	@Override
@@ -712,5 +755,98 @@ public class MailEngine implements Server{
 		}
 		LOGGER.info("Mail Server Configuration Saved");
 		return true;
+	}
+
+	@Override
+	public ObjectNode getStats()
+	{
+		DateTime startDt = new DateTime();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		HashMap<String, Object> chartData1 = new HashMap<String, Object>();
+		HashMap<String, Object> chartData2 = new HashMap<String, Object>();
+		ArrayList<HashMap<String, Object>> chartPoints = new ArrayList<HashMap<String, Object>>();
+		data.put("0", chartData1);
+		data.put("1", chartData2);
+		
+		chartData1.put("type", "line");
+		chartData1.put("name",  "Emails Converted");
+		chartData1.put("color", "#619D67");
+		chartData1.put("showInLegend", true);
+		chartData1.put("markerType", "square");
+		
+		DateTime dt = startDt;
+		
+		HashMap<String, Object> temp = new HashMap<String, Object>();
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[4][0]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[3][0]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[2][0]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[1][0]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[0][0]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		
+		chartData1.put("dataPoints",chartPoints);
+		chartPoints = new ArrayList<HashMap<String, Object>>();
+		
+		chartData2.put("type", "line");
+		chartData2.put("name",  "Texts Converted");
+		chartData2.put("color", "#455B4F");
+		chartData2.put("showInLegend", true);
+		chartData2.put("markerType", "square");
+		
+		dt = startDt;
+		
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[4][1]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[3][1]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[2][1]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[1][1]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[0][1]);
+		chartPoints.add(temp);
+		
+		chartData2.put("dataPoints",chartPoints);
+		
+		return mapper.valueToTree(data);
+	}
+
+	@Override
+	public Long getStartTime()
+	{
+		return startTime;
 	}
 }

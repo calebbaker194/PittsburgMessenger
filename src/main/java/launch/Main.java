@@ -93,10 +93,12 @@ public class Main{
 		apply();
 		
 		//Start Mail Server
-		//me = MailEngine.getInstance();
+		me = MailEngine.getInstance();
 		
 		//Start sms server
 		sms = SmsServer.getInstance();
+		
+		
 		
 		//Intiate Drive
 		dr = DriveServer.getInstance();
@@ -105,8 +107,8 @@ public class Main{
 		InitMonitor();
 		Kanban k = new Kanban();
 		
-		//me.regesterRequiredServers();
-		//sms.regesterRequiredServers();
+		me.regesterRequiredServers();
+		sms.regesterRequiredServers();
 		dr.regesterRequiredServers();
 		
 		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
@@ -244,6 +246,26 @@ public class Main{
 			return res;
 		});
 		
+		get("/server-test", (req,res) -> {
+			if(req.host() == "kanban.pittsburgsteel.com") {
+				res.redirect("/kanban");
+				return res;
+			}
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					Map<String, Object> model = new HashMap<String, Object>();					
+					return new VelocityTemplateEngine().render(
+							new ModelAndView(model, "web/server-test.html")
+					); 
+				}
+			}
+					
+			res.redirect("/login");
+			return res;
+		});
+		
 		get("/logout", (req,res) -> {
 			
 			if(req.host() == "kanban.pittsburgsteel.com") {
@@ -325,10 +347,7 @@ public class Main{
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
 				{
-					Map<String, Object> model = new HashMap<String, Object>();
-					
-					model.put("serverList", getServers());
-					
+					Map<String, Object> model = new HashMap<String, Object>();					
 					return new VelocityTemplateEngine().render(
 							new ModelAndView(model, "web/monitor.html")
 					); 
@@ -338,20 +357,23 @@ public class Main{
 			return res;
 		});
 		
+		post("/monitor/servers.json", (req, res) -> {
+			res.type("application/json");
+			ObjectMapper mapper = new ObjectMapper();
+			return mapper.writeValueAsString(getServers());
+		});
+		
 		get("/monitor/chartdata.json", (req, res) -> {
 			res.type("application/json");
 			
 			ObjectMapper o = new ObjectMapper();
 			ObjectNode data = o.createObjectNode();
 			
-			for(Server s : serverList) 
-			{
-				if(s != null)
-				{
-					
-				}
-			}
-			return "";
+			data.set(me.getName(), me.getStats());
+			data.set(sms.getName(), sms.getStats());
+			data.set(dr.getName(), dr.getStats());
+			
+			return o.writer().writeValueAsString(data);
 		});
 		
 		post("/restart",(req, res) -> {
@@ -364,9 +386,13 @@ public class Main{
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
 				{
-					int tindex=Integer.parseInt(req.queryParams("index"));
-					LOGGER.info("SERVER "+ tindex +" Is Restarting");
-					serverList[tindex].restart();
+					String SName = req.queryParams("index");
+					LOGGER.info("SERVER "+ SName +" Is Restarting");
+					for(Server s : serverList)
+					{
+						if(s != null && s.getName().equals(SName))
+							s.restart();
+					}
 					serverList = new Server[] {me,sms,dr};
 					return true;
 				}
@@ -384,9 +410,13 @@ public class Main{
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
 				{
-					int tindex=Integer.parseInt(req.queryParams("index"));
-					LOGGER.info("SERVER "+ tindex +" Has Stopped");
-					serverList[tindex].stop();
+					String SName = req.queryParams("index");
+					LOGGER.info("SERVER "+ SName +" Is Stoping");
+					for(Server s : serverList)
+					{
+						if(s != null && s.getName().equals(SName))
+							s.stop();
+					}
 					serverList = new Server[] {me,sms,dr};
 					return true;
 				}
@@ -403,15 +433,30 @@ public class Main{
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
 				{
-					int tindex=Integer.parseInt(req.queryParams("index"));
-					LOGGER.info("SERVER "+ tindex +" Has Started");
-					serverList[tindex].start();
+					String SName = req.queryParams("index");
+					LOGGER.info("SERVER "+ SName +" Is Starting");
+					for(Server s : serverList)
+					{
+						if(s != null && s.getName().equals(SName))
+							s.start();
+					}
 					serverList = new Server[] {me,sms,dr};
 					return true;
 				}
 			}
 			res.redirect("/login");
 			return false;
+		});
+		
+		post("/getstats", (req,res) -> {
+			res.type("application/json");
+			String serverName = req.queryParams("server");
+			if(serverName != null) 
+			{
+				
+			}
+			
+			return "";
 		});
 	}
 	
@@ -421,18 +466,18 @@ public class Main{
 		return (username.equals(uname) && password.equals(passwd));
 	}
 
-	private ArrayList<HashMap<String, String>> getServers()
+	private ArrayList<HashMap<String, Object>> getServers()
 	{
-		ArrayList<HashMap<String, String>> a = new ArrayList<HashMap<String, String>>();
-		HashMap<String, String> map;
+		ArrayList<HashMap<String, Object>> a = new ArrayList<HashMap<String, Object>>();
+		HashMap<String, Object> map;
 		for( Server s: serverList)
 		{
 			if(s!= null)
 			{
-				map = new HashMap<String, String>(); 
+				map = new HashMap<String, Object>(); 
 				map.put("name", s.getName());
 				map.put("status",s.isRunning()+"");
-				map.put("startTime", System.currentTimeMillis()+"");
+				map.put("startTime", s.getStartTime());
 				map.put("lastErrorDate",s.getLastErrorDate());
 				map.put("lastError",s.getLastError());
 				a.add(map);

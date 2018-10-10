@@ -2,9 +2,128 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
-<title>Insert title here</title>
+<title>Server Test</title>
+<link rel="stylesheet" href="css/server-test.css"/>
+<link rel="stylesheet" href="plugins/alertify.css">
+<link rel="stylesheet" href="css/theme.css">
+<script src="plugins/vue.js"></script>
+<script src="plugins/alertify.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
-<body>
-
+<body class="html-body bg-light">
+	<div id="app" class="window">
+		<div id="smstest" class="section">
+			<form name="smsdata" action="javascript:testSms(smsdata)">
+				<div class="form=row">
+					<label>Send To:<input class="form-seperate" name="toNumber" type="text" placeholder = +1(NXX)NXX-XXXX></label>
+					<label class="align-right">From:
+					<select name="fromNumber">
+						<option v-for="number in avaNumbers" :value="number">{{number}}</option>
+					</select>
+				
+					</label>
+				</div>
+				<label >Message:</label></br><textarea name="textBody" rows="4" cols="60"></textarea>
+				</br>
+				<div class="right-div">
+				<input class="bttn bg-primary" type="submit" value="Send Message">
+				</div>
+				</br class="clear">
+			</form>
+			</br class="clear">
+		</div>
+		
+		<div id="mailtest" class="section">
+			<form name="maildata" action="javascript:testMail(maildata)">
+				<div class="form=row">
+					<label>Send To:<input class="form-seperate" name="toEmail" type="text" placeholder = example@mail.com></label>
+					<br/>
+					<label >From:
+					<input class="form-seperate" type="text" name="fromEmail" placeholder="example">
+					@
+					<select name="fromDomain">
+						<option v-for="maildomain in avaMailDomains" :value="number">{{maildomain}}</option>
+					</select>
+					</label>
+				</div>
+				<label >Subject:</label><textarea name="emailSubject" rows="1" cols="60"></textarea>
+				</br>
+				<label >Body:</label></br><textarea name="emailBody" rows="4" cols="60"></textarea>
+				</br>
+				<div class="right-div">
+				<input class="bttn bg-primary" type="submit" value="Send E-Mail">
+				</div>
+				</br class="clear">
+			</form>
+			</br class="clear">
+		</div>
+		</br>
+		<div id="drivetest" class="section">
+			<form name="drivedata" action="javascript:testDrive(drivedata)">
+				<label>File Name:<input class="form-seperate" name="fileName" type="text" placeholder = filename.png></label>
+			
+			<img v-if="imagelink!=null" :src="imagelink" width="100%">
+				<input class="bttn bg-primary" type="submit" value="Open">
+			</br class="clear">
+			</form>
+		</div>
+	</div>
 </body>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+        avaNumbers: [],
+        avaMailDomains: [],
+        imagelink: null,
+	},
+	created () {
+		var self = this;
+		$.post('/text/numbers.json',function(data) {
+			console.log(data);
+			self.avaNumbers = data;
+		});
+		
+//		$.post('/mail/mailDomains.json', function(data) {
+//			self.avaMailDomains = data;
+//		});
+	},
+})
+function testDrive(driveData) {
+	var self = app.data;
+	console.log(driveData);
+	$.post('/drive/'+driveData.fileName, function(data) {
+		self.imagelink = data;
+	});
+}
+
+function testMail(mailData) {
+	console.log($(maildata).serialize())
+	var self = app.data;
+	$.post('/mail/sendEmail.json',$(maildata).serialize(),function(data){
+		if(data.success) {
+			alertify.success("Email Successfully Sent to: " + data.toEmail);
+		}
+		else {
+			alertify.error("Mail not sent successfully:" +data.error);
+		}
+	})
+}
+
+function testSms(smsData) {
+	var self = app.data;
+	var test = smsData;
+	$.post('/text/sendSms.json',$(smsData).serialize(),function(data){
+		console.log(data);
+		test = data;
+		if(data.success) {
+			alertify.success("Text sent with message id of: "+data.mid);
+		}
+		else {
+			alertify.error("Text not sent successfully: " + data.error);
+		}
+	})
+	console.log(test.success);
+}
+</script>
 </html>

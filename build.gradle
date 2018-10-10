@@ -37,7 +37,7 @@ dependencies {
 
     
     // This is for the twilio API
-    compile group: "com.twilio.sdk", name: "twilio", version: "7.21.+"
+    compile group: "com.twilio.sdk", name: "twilio", version: "7.27.0"
     // This is for the web server Spark built on jetty
     compile group: "com.sparkjava", name: "spark-core", version: "2.7.2"
         // FOR the html render engine

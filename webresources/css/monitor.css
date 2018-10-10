@@ -13,6 +13,10 @@
 	float:right;
 	margin-right: 10px;
 }
+
+#app {
+	overflow: auto;
+}
 .cmonitor {
 	background : white;
   	border: 1px solid grey; 
