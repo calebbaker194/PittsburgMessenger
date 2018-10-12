@@ -7,24 +7,33 @@ public class ImapServer implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = -8812497077186759604L;
-	private boolean starttls = false;
-	private String host;
+	private boolean starttls;
+	private String imapHost;
+	private String smtpHost;
 	private String username;
 	private String address;
 	private String password;
-	private int port;
+	private int imapPort;
+	private int smtpPort;
 	private boolean auth;
 	private String commonName;
-	public ImapServer(boolean starttls,String host,String username,String address,String commonName,String password,int port,boolean auth)
+	private String smtpProtocol;
+	private String imapProtocol;
+	
+	public ImapServer(boolean starttls, String imapHost, int imapPort, String smtpHost, int smtpPort, String imapProto, String smtpProto ,String username,String address,String commonName,String password ,boolean auth)
 	{
 		setStarttls(starttls);
-		setHost(host);
+		setImapHost(imapHost);
+		setSmtpHost(smtpHost);
+		setImapPort(imapPort);
+		setSmtpPort(smtpPort);;
 		setUsername(username);
 		setAddress(address);
 		setPassword(password);
-		setPort(port);
 		setAuth(auth);
 		setCommonName(commonName);
+		setImapProtocol(imapProto);
+		setSmtpProtocol(smtpProto);
 	}
 	public ImapServer()
 	{
@@ -35,12 +44,6 @@ public class ImapServer implements Serializable{
 	}
 	public void setStarttls(boolean starttls) {
 			this.starttls=starttls;
-	}
-	public String getHost() {
-		return host;
-	}
-	public void setHost(String host) {
-		this.host = host;
 	}
 	public String getUsername() {
 		return username;
@@ -53,12 +56,6 @@ public class ImapServer implements Serializable{
 	}
 	public void setPassword(String password) {
 		this.password = password;
-	}
-	public int getPort() {
-		return (port);
-	}
-	public void setPort(int port) {
-		this.port = port;
 	}
 	public boolean getAuth() {
 		return auth;
@@ -81,12 +78,60 @@ public class ImapServer implements Serializable{
 	public String toString()
 	{
 		String s = "";
-		s+="host: "+host+"\n";
+		s+="host: "+imapHost+"\n";
 		s+="address: "+address+"\n";
 		s+="username: "+username+"\n";
 		s+="password: "+password+"\n";
 		s+="auth: "+auth+"\n";
-		s+="starttls: "+starttls+"\n";
+		s+="starttls: "+(starttls?"true":"false")+"\n";
 		return s;
+	}
+	public String getImapHost()
+	{
+		return imapHost;
+	}
+	public void setImapHost(String imapHost)
+	{
+		this.imapHost = imapHost;
+	}
+	public String getSmtpHost()
+	{
+		return smtpHost;
+	}
+	public void setSmtpHost(String smtpHost)
+	{
+		this.smtpHost = smtpHost;
+	}
+	public int getImapPort()
+	{
+		return imapPort;
+	}
+	public void setImapPort(int imapPort)
+	{
+		this.imapPort = imapPort;
+	}
+	public int getSmtpPort()
+	{
+		return smtpPort;
+	}
+	public void setSmtpPort(int smtpPort)
+	{
+		this.smtpPort = smtpPort;
+	}
+	public String getSmtpProtocol()
+	{
+		return smtpProtocol;
+	}
+	public void setSmtpProtocol(String smtpProtocol)
+	{
+		this.smtpProtocol = smtpProtocol;
+	}
+	public String getImapProtocol()
+	{
+		return imapProtocol;
+	}
+	public void setImapProtocol(String imapProtocol)
+	{
+		this.imapProtocol = imapProtocol;
 	}
 }

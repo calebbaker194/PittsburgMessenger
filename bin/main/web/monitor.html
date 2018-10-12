@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Monitor</title>
+	<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="css/theme.css"/> 
+	<link rel="stylesheet" href="css/monitor.css"/>
+	<script src="plugins/vue.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.js"></script>
+	<script src="plugins/alertify.js"></script>
+</head>
+<body class="html-body bg-light">
+	<div id="app">
+		<div class="row">
+			<div v-for="server in serverList" class="cmonitor">
+				<h1 class="ctitle">{{server.name}}</h1>
+				<div class="graph-outer inset-shadow">
+					<div style="height: 360px; width: 94%;" :id="server.name.replace(/\s/g, '')+'-graph'" class="graph-inner">
+					
+					</div>
+				</div>
+				<div class="cmonitor-row">
+					<div class="left">
+						<table class="fill table">
+							<tr>
+								<th>Server Status</th>
+								<td class="right-align">{{server.status}}</td>
+							</tr>
+							<tr>
+								<th>Start Time:</th>
+								<td class="right-align">{{server.startTime}}</td>
+							</tr>
+						</table>
+					</div>
+					<div class="right">
+						<table class="fill table">
+							<tr>
+								<th>Last Error:</th>
+								<td class="right-align">{{server.lastError}}</td>
+							</tr>
+							<tr>
+								<th>Error Date:</th>
+								<td class="right-align">{{server.lastErrorDate}}</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="half-row">
+					<button type="button" :onclick="'start(\''+server.name+'\')'" class="bttn bg-primary">Start</button>
+					<button type="button" :onclick="'restart(\''+server.name+'\')'" class="bttn bg-primary">Restart</button>
+					<button type="button" :onclick="'stop(\''+server.name+'\')'" class="bttn bg-primary">Stop</button>
+				</div>
+			 </div>
+			 <div class="clear" ></div>
+		</div>
+		<br/>
+	</div>
+	<br/>
+</body>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+        serverList : [],
+        graphData : {},
+	},
+	created () {
+		var self = this;
+		$.post('/monitor/servers.json',function(data) {
+			for(var item in data)
+			{
+				console.log(data[item].startTime);
+				data[item].startTime = new Date(data[item].startTime).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
+				data[item].lastErrorDate = new Date(data[item].lastErrorDate).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
+			}
+			
+			self.serverList = data;
+		});
+		loadServerData()
+	},
+
+})
+
+
+function loadServerData(){
+	var self = this;
+	$.get('/monitor/chartdata.json',function(data) {
+		for(var name in data)
+		{
+			for(var ind in data[name])
+			{
+				for(var pts in data[name][ind].dataPoints)
+				{
+					data[name][ind].dataPoints[pts].x = new Date(data[name][ind].dataPoints[pts].x);
+				}
+			}
+			var dataArray = [];
+			
+			for(var i in data[name])
+				dataArray.push(data[name][i]);
+			
+			var chart = new CanvasJS.Chart(name.replace(/\s/g, '')+"-graph", {
+				animationEnabled: true,
+				theme: "light2",
+				title: {
+					text: name
+				},
+				axisX: {
+					valueFormatString: "hh:mm",
+					crosshair: {
+						enabled: true,
+						snapToDataPoint: true
+					}
+				},
+				axisY: {
+					crosshair: {
+						enabled: true
+					}
+				},
+				options: {
+				    responsive: false,
+				    maintainAspectRatio: false,
+				    scales: {
+				        yAxes: [{
+				            ticks: {
+				                beginAtZero:true
+				            }
+				        }]
+				    }
+				},
+				legend:{
+					cursor:"pointer",
+					verticalAlign: "bottom",
+					horizontalAlign: "left",
+					dockInsidePlotArea: true,
+				},
+				data: dataArray
+			})
+			console.log(data[name])
+			chart.render();
+		}
+	})
+}
+
+window.onload = init;
+function init() {
+    
+}
+
+function start(index) {
+  $.post('start',{'index':index},function(data) {
+    if(data) {
+      console.log(data);
+    }
+  });
+}
+
+function restart(index) {
+  $.post('restart',{'index':index},function(data) {
+    if(data) {
+      console.log(data);
+    }
+  });
+}
+
+function stop(index) {
+  $.post('stop',{'index':index},function(data) {
+    if(data) {
+      console.log(data);
+    }
+  });
+}
+</script>
+</html>

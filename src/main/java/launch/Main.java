@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.junit.Test;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +44,7 @@ public class Main{
 	private String passwd="";
  
 	public Server[] serverList= {me,sms,dr};
-	
+	public HashMap<String, String> tokens = new HashMap<String, String>();
 	private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 	
     private static final HashMap<String, String> corsHeaders = new HashMap<String, String>();
@@ -64,6 +67,7 @@ public class Main{
         };
         Spark.after(filter);
     }
+    
     
 	public Main()
 	{
@@ -336,6 +340,21 @@ public class Main{
 			);
 		});
 		
+		get("/admin/config", (req, res) -> {
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					Map<String, Object> model = new HashMap<String, Object>();					
+					return new VelocityTemplateEngine().render(
+							new ModelAndView(model, "web/admin.html")
+					); 
+				}
+			}
+			res.redirect("/login");
+			return res;
+		});
+		
 		get("/monitor", (req, res) -> {
 			
 			if(req.host() == "kanban.pittsburgsteel.com") {
@@ -511,10 +530,10 @@ public class Main{
 		dr.regesterRequiredServers();
 		
 	}
-	
+	@Test
 	public static void main(String args[])throws IOException, GeneralSecurityException
 	{	
-		new Main(); 
+		Main a = new Main(); 
 		
 	}
 

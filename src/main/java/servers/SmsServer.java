@@ -3,6 +3,7 @@ package servers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sun.mail.imap.protocol.Namespaces;
 import com.twilio.Twilio;
 import com.twilio.base.ResourceSet;
 import com.twilio.http.HttpMethod;
@@ -61,10 +62,9 @@ public class SmsServer implements server.Server{
 	private long lastErrorDate = 0l;
 	private Timer st = null;
 	private Exception lastError = null;
-    public int[][] stats = new int [5][2];
+    public int[][] stats = new int [5][4];
 	private String ACCOUNT_SID = "";
 	private String AUTH_TOKEN = "";
-	private String TRUNK_ID = "";
 	public boolean init = false;
 	public HashMap<String, String> autoReplyMap;
 	private boolean accepting = true;
@@ -199,11 +199,26 @@ public class SmsServer implements server.Server{
 			// Make Sure if nothing is in the hashmap that we pass null
 			if (attachments.size() < 1)
 				attachments = null;
-
+			boolean sent = false;
 			// Send the email
-			me.sendEmail(location, "from"+fromNumber, "Re: SMS", req.queryParams("Body").toString(),
+			try {
+				sent = me.sendEmail(location, "from"+fromNumber, "Re: SMS", req.queryParams("Body").toString(),
 					me.getReplyID(fromNumber), attachments);
-
+			}
+			catch(Exception e) {};
+			
+			if(sent)
+			{
+				stats[4][2]++;
+			}
+			else
+			{
+				stats[4][3]++;
+			}
+			
+			
+			//TODO: Following code does not work properly 
+			/*
 			// Get the message history
 			ResourceSet<Message> messages = Message.reader().setFrom(new com.twilio.type.PhoneNumber(fromNumber))
 					.read();
@@ -232,6 +247,8 @@ public class SmsServer implements server.Server{
 				MessagingResponse twiml = new MessagingResponse.Builder().message(sms).build();
 				return twiml.toXml();
 			}
+			*/
+			// END TODO:
 			// Otherwise return an empty response //AKA don't send a message back
 			return "<Response></Response>";
 		});
@@ -536,86 +553,44 @@ public class SmsServer implements server.Server{
 		
 		ObjectMapper mapper = new ObjectMapper();
 		HashMap<String, Object> data = new HashMap<String, Object>();
-		HashMap<String, Object> chartData1 = new HashMap<String, Object>();
-		HashMap<String, Object> chartData2 = new HashMap<String, Object>();
-		ArrayList<HashMap<String, Object>> chartPoints = new ArrayList<HashMap<String, Object>>();
-		data.put("0", chartData1);
-		data.put("1", chartData2);
+		HashMap<String, Object> chartData;
+		ArrayList<HashMap<String, Object>> chartPoints;
 		
-		chartData1.put("type", "line");
-		chartData1.put("name",  "Texts Recieved");
-		chartData1.put("color", "#619D67");
-		chartData1.put("showInLegend", true);
-		chartData1.put("markerType", "square");
+		HashMap<String,String> names = new HashMap<String,String>();
+		names.put("Texts Sent", "#619D67");
+		names.put("Texts Recieved", "#455B4F");
+		names.put("Texts Tunneled", "#88AA88");
+		names.put("Tunnel Failed", "#E60000");
+		int count =0;
 		
-		DateTime dt = startDt;
-		
-		HashMap<String, Object> temp = new HashMap<String, Object>();
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[4][0]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[3][0]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[2][0]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[1][0]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[0][0]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		
-		
-		chartData1.put("dataPoints",chartPoints);
-		chartPoints =new ArrayList<HashMap<String, Object>>();
-		
-		chartData2.put("type", "line");
-		chartData2.put("name",  "Texts Sent");
-		chartData2.put("color", "#455B4F");
-		chartData2.put("showInLegend", true);
-		chartData2.put("markerType", "square");
-		
-		dt = startDt;
-		
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[4][1]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[3][1]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[2][1]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[1][1]);
-		chartPoints.add(temp);
-		temp = new HashMap<String, Object>();
-		dt = dt.minusMinutes(2);
-		temp.put("x", dt.getMillis());
-		temp.put("y", stats[0][1]);
-		chartPoints.add(temp);
-		
-		chartData2.put("dataPoints",chartPoints);
-		
+		for(String name : names.keySet() )
+		{
+			chartData = new HashMap<String, Object>();
+			chartPoints = new ArrayList<HashMap<String, Object>>();
+			data.put(name, chartData);
+			
+			chartData.put("type", "line");
+			chartData.put("name",  name);
+			chartData.put("color", names.get(name));
+			chartData.put("showInLegend", true);
+			chartData.put("markerType", "square");
+
+			DateTime dt = startDt;
+			
+			HashMap<String, Object> temp = new HashMap<String, Object>();
+			
+			for(int x=stats.length-1;x>=0;x--)
+			{
+				temp.put("x", dt.getMillis());
+				temp.put("y", stats[x][count]);
+				chartPoints.add(temp);
+				temp = new HashMap<String, Object>();
+				dt = dt.minusMinutes(2);
+			}				
+			chartData.put("dataPoints",chartPoints);
+			count++;
+		}
 		return mapper.valueToTree(data);
-		
 	}
 
 	@Override

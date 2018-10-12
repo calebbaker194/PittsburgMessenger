@@ -113,7 +113,6 @@ public class DriveServer implements server.Server{
 			}
 			else
 			{
-				System.out.println(files.get(0).getWebContentLink());
 				if (files.size() == 1)
 				{
 					instance.setRunning(true);
@@ -132,7 +131,6 @@ public class DriveServer implements server.Server{
 				} 
 				else
 				{
-					System.out.println("test");
 					instance.setRunning(true);
 					throw new URIReferenceException(" Multiple Files Found with the Same URL Cannot Send message");
 				}
@@ -184,6 +182,28 @@ public class DriveServer implements server.Server{
 	         }
 	         in.close();
 	        res.header("Content-Type", f.getMimeType());
+			return res;
+		});
+		get("/file/:fileName",(req,res) -> {
+			stats[4]++;
+			String filename = req.params(":fileName");
+			
+			com.google.api.services.drive.model.File f = DriveServer.getFile(filename);
+			if(f == null)
+			{
+				return "File NOT Found";
+			}
+			InputStream in = new URL(f.getWebContentLink()).openStream();
+			OutputStream out = res.raw().getOutputStream();
+			
+			byte[] buffer = new byte[4096];
+	         int length;
+	         while ((length = in.read(buffer)) > 0){
+	            out.write(buffer, 0, length);
+	         }
+	         in.close();
+	        res.header("Content-Type", f.getMimeType());
+	        res.type(f.getMimeType());
 			return res;
 		});
 		setRunning(true);

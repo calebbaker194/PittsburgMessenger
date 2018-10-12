@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link rel="stylesheet" href="/kanban/css/theme.css"/>
+<link rel="stylesheet" href="/kanban/css/kanban.css"/>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+<script src="/plugins/colResize.js"></script>
+<script src="/plugins/alertify.js"></script>
+<script src="/plugins/vue.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
+</head>
+<body>
+    <div class="navbar">
+	    <a href="/kanban">Main</a>
+    </div>
+    <div id="app">
+        <div class="font-weight-normal">
+            <div id="confirmation" class="main">
+                <div style="text-align: center">
+                    <h2>{{shiptoname}}</h2>
+                </div>
+                <header><h3>Confirmations</h3></header>
+                <table id="conftable">
+                    <thead>
+                        <th class="show-always"><div class="padded">Quote #</div></th>
+                        <th class="show-large"><div class="padded">Item #</div></th>
+                        <th class="show-always"><div class="padded">Cust Item #</div></th>
+                        <th class="show-large"><div class="padded">Item Description</div></th>
+                        <th class="show-large center"><div class="padded">Estimated Cost</div></th>
+                        <th class="show-large center"><div class="padded">Action</div></th>
+                    </thead>
+                    <tbody v-for="confirm in confirmations">
+                        <tr>
+                        <td class="show-always"><div class="padded"><a>{{confirm.quhead_number}}</a></div></td>
+                        <td class="show-large"><div class="padded"></div></td>
+                        <td class="show-always"><div class="padded"></div></td>
+                        <td class="show-large"><div class="padded"></div></td>
+                        <td class="show-large number"><div class="padded"><span class="left">$</span>{{confirm.estematedcost}}</div></td>
+                        <td class="show-large center"><div class="padded"><button v-bind:onclick="'convertQuote('+confirm.quhead_id+');'">Approve Order</button></div></td>
+                        </tr>
+                        <tr v-for="item in confirm.items">
+                        <td class="show-always"><div class="padded">&emsp;&emsp;-{{item.quitem_linenumber}}</div></td>
+                        <td class="show-large"><div class="padded">{{item.item_number}}</div></td>
+                        <td class="show-always"><div class="padded">{{item.cust_item_number}}</div></td>
+                        <td class="show-large"><div class="padded">{{item.item_descrip1}}</div></td>
+                        <td class="show-large number"><div class="padded"><span class="left">$</span>{{item.quitem_price}}</div></td>
+                        <td class="show-large center"><div class="padded"><button v-bind:onclick="'moveQuoteModal('+item.quitem_id+');'">Change Quote</button></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="items">
+                <header><a href="kanban/items"><h3>Items</h3></a></header>
+                <table id="itemstable">
+                    <tr>
+                        <th class="show-large"><div class="padded">Item #</div></th>
+                        <th class="show-always"><div class="padded">Cust Item #</div></th>
+                        <th class="show-always"><div class="padded">Item Decpriton</div></th>
+                        <th class="show-always center"> In Stock</th>
+                        <th class="show-large center">Base Stock</th>
+                        <th class="show-always center">On Order</th>
+                        <th class="show-large center">Awating Conf</th>
+                    </tr>
+                    <tr v-for="item in items">
+                        <td class="show-large"><div class="padded"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.item_number }}</a></div></td>
+                        <td class="show-always"><div class="padded"><a v-bind:href="'/kanban/items/'+item.item_id">{{ item.cust_number }}</a></div></td>
+                        <td class="show-always"><div class="padded">{{ item.description }}</div></td>
+                        <td class="show-always center"><div class="padded">{{ item.instock }}</div></td>
+                        <td class="show-large center"><div class="padded">{{item.basestock}}</div></td>
+                        <td class="show-always center"><div class="padded">{{ item.onorder }}</div></td>
+                        <td class="show-large center"><div class="padded">{{ item.onconf }}</div></td>
+                    </tr>
+                </table>
+            </div>
+            <div id="employees">
+                <header><h3>Employees</h3></header>
+                <table id="emptable">
+                    <tr>
+                        <th><div class="padded">Name</div></th>
+                        <th><div class="padded">Password</div></th>
+                        <th><div class="padded">Admin</div></th>
+                        <th><div class="padded">Remove</div></th>
+                    </tr>
+                    <tr v-for="employee in employees">
+                        <td><div class="padded">{{employee.lname}}, {{employee.fname}}</div></td>
+                        <td><div class="padded">{{employee.passwd}}</div></td>
+                        <td><div class="padded">{{employee.admin}}</div></td>
+                        <td><div class="padded"><button onclick="removeEmployee();">Remove</button></div></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- ---------------------------------------Modals--------------------------------------- -->
+        <div class="modal" id="quitem-transfer-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div><span class="close">&times;</span><h3>Select Quote</h3></div>
+                </div>
+                <div class="modal-body">
+                    <p>Please select a quote to transfer the item to or leave it as default to create a new quote</p>
+                    <select id="quitem_number" name="quitem_number">
+                        <option value="-1">New Quote</option>
+                        <option v-for="confirm in confirmations" :value="confirm.quhead_id">{{ confirm.quhead_number }}</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="javasctipt:moveToDifferentQuote()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script>
+var lastPO = null;
+var transModal = document.getElementById("quitem-transfer-modal");
+var transModalClose = document.getElementsByClassName("close")[0];
+var quitem_id = -1;
+
+const app = new Vue({
+	el: '#app',
+	data: {
+        items: [],
+        employees: [],
+        confirmations: [],
+        shiptoname: 'shiptp',
+        
+	},
+	created () {
+		var self = this;
+		fetch('/kanban/items.json',{
+            credentials: 'same-origin',  
+            cache: 'no-store'  
+        })
+		.then(response => response.json())
+        .then(json => {self.items = json});
+        
+        fetch('/kanban/quotes.json',{  
+			credentials: 'same-origin',  
+			cache: 'no-store'  
+		})
+        .then(response => response.json())
+        .then(json =>{ 
+            self.confirmations = json
+            for( it in self.confirmations) {
+                self.confirmations[it].estematedcost = 
+                self.confirmations[it].estematedcost.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
+                for( lineit in self.confirmations[it].items) {
+                    self.confirmations[it].items[lineit].quitem_price =
+                    self.confirmations[it].items[lineit].quitem_price.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
+                }
+            }
+        });
+
+        fetch('/kanban/employees.json',{  
+			credentials: 'same-origin',  
+			cache: 'no-store'  
+		})
+        .then(response => response.json())
+        .then(json =>{self.employees = json});
+    }
+})
+
+function convertQuote(quoteId) {
+
+    alertify.prompt('Please Enter a PO#', lastPO ? lastPO : ""
+               , function(evt, value) { if(value && value != "")
+                 lastPO = value;
+                $.post("/kanban/convert.json",{"quhead_id":quoteId,"custpo":lastPO},function(data) {
+                    if(data.success)
+                        alertify.success("Order Confirmed");
+                    else
+                        alertify.error("Order Could not be confirmed. Please try again or email it@pittsburgsteel.com");
+                }).fail(function(xhr, status, error)  {
+                    alertify.error("An unknow error occured please try again");
+                });
+    });
+
+}
+
+function moveQuoteModal(pquitemid) {
+
+    if(app.confirmations.length == 1 && false) {
+        moveToDifferentQuote(-1);
+    }
+    else {
+        document.getElementById("quitem-transfer-modal").style.display = "block";
+        quitem_id=pquitemid;
+    }
+}
+
+function moveToDifferentQuote() {
+    var params = new Object();
+    params.quitem_id = quitem_id;
+    
+    var quhead_id = document.getElementById("quitem_number").value;
+
+    if(quhead_id != -1)
+        params.quhead_id = quhead_id;
+
+    document.getElementById("quitem-transfer-modal").style.display = "none";
+    quitem_id = -1;
+
+    $.post("/kanban/move-quote",params,function(data) {
+        if(data.success) {
+            location.reload();
+        }
+        else {
+            alertify.error("Transfering Item Failed: "+data.message);
+        }
+    }).fail(function(xhr, status, error) {
+        alertify.error("An unknown error has occured. Please Try Again");
+    });
+}
+
+document.getElementsByClassName("close")[0].onclick = function() {
+    document.getElementById("quitem-transfer-modal").style.display = "none";
+    quitem_id = -1;
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == document.getElementById("quitem-transfer-modal")) {
+        document.getElementById("quitem-transfer-modal").style.display = "none";
+        quitem_id = -1;
+    }
+}
+
+$("#conftable").colResizable({liveDrag:true});
+$("#itemstable").colResizable({liveDrag:true});
+$("#emptable").colResizable({liveDrag:true});
+</script>
+</html>
