@@ -2,6 +2,8 @@ package kanban;
 
 import static spark.Spark.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,8 +58,21 @@ public class Kanban
 	{
 		try
 		{
+			InetAddress address=null;
+			try {
+				address = InetAddress.getByName("psh1");
+			} catch (UnknownHostException e) {
+				LOGGER.warning("Failed to parse host name correctly");
+				try {
+					address = InetAddress.getByName("192.168.2.3");
+				} catch (UnknownHostException e1) {
+					LOGGER.severe("Postgresql Host does not exists");
+				}
+			}
+			String addr = address != null ? address.getHostAddress() : "192.168.2.3";
 			Class.forName("org.postgresql.Driver");
-			SQLEngine.SQLConnection("PittSteel2", "psh1", 5432, "caleb", "tori");
+			SQLEngine.SQLConnection("PittSteel2", addr, 5432, "caleb", "tori");
+			LOGGER.info("Succesfully logged into the database server");
 		} catch (ClassNotFoundException e)
 		{
 			LOGGER.log(java.util.logging.Level.SEVERE,"CANNOT LOAD POSTGRESQL DRIVERS "+e.toString(),e);
@@ -518,7 +533,7 @@ public class Kanban
 	 * @param cookie : the cookie to associate the user
 	 * @return the User associated with the cookie
 	 */
-	private static User getUserFromCookie(String cookie)
+	public static User getUserFromCookie(String cookie)
 	{
 		ResultList r = SQLEngine.executeDBQuery("SELECT " + 
 				"cntct_id AS id, " + 
