@@ -15,5 +15,5 @@ hs_err_pid*
 /cert
 /credentials
 /config
-/.gradle/
 /build/
+/.gradle

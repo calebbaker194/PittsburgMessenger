@@ -1,9 +1,12 @@
 package servers;
 
+import static spark.Spark.*;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -30,6 +33,7 @@ import javax.mail.*;
 import javax.mail.Flags.Flag;
 import javax.mail.Message.RecipientType;
 import org.eclipse.jetty.util.BlockingArrayQueue;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,12 +55,14 @@ public class MailEngine implements Server{
 	public boolean locked = false;
 	public long locktime = System.currentTimeMillis();
 	private Exception lastError = null;
+	private long startTime = 0l;
 	private ExecutorService threadPool;
 	private ArrayDeque<Future<String>> threadStatus= new ArrayDeque<Future<String>>(); 
 	public static final Logger LOGGER = Logger.getLogger(MailEngine.class.getName());
 	private static final boolean DEBUG = true;
 	public String mailStrProt = "imap";
 	Thread t;
+	private Timer st = null;
 	private Timer timer = new Timer();
 	private SmsServer sms = null;
 	private boolean isRunning = false;
@@ -69,9 +75,14 @@ public class MailEngine implements Server{
 	public boolean Continue = true;
 	public static final String DEFAULT_REPLY_NUMBER="ALL";
 	public static String DEFAULT_FROM_EMAIL = "";
-	
+	public boolean workingConfig = false;
 	public static MailEngine instance = null;
-
+	public int[][] stats  = {{10,1},
+							 {2,1},
+							 {1,2},
+							 {0,0},
+							 {3,2}};
+	
 	private MailEngine()
 	{
 	    load();
@@ -80,18 +91,19 @@ public class MailEngine implements Server{
 	private void initMailServer()
 	{
 		Properties props = new Properties();
-		props.put("mail.imap.host", defaultServers.get(0).getHost());
-		props.put("mail.imap.port", defaultServers.get(0).getPort());
+		props.put("mail.imap.host", defaultServers.get(0).getImapHost()+"");
+		props.put("mail.imap.port", defaultServers.get(0).getImapPort()+"");
+		props.put("mail.imap.starttls.enable", defaultServers.get(0).getStarttls()+"");
 
 		emailSessionObj = Session.getInstance(props);
 		
 		try
 		{
-			storeObj = emailSessionObj.getStore("imap");
+			storeObj = emailSessionObj.getStore(defaultServers.get(0).getImapProtocol());
 			
 			// Initiate Imap Connection
-			storeObj.connect(defaultServers.get(0).getHost(),defaultServers.get(0).getUsername(), defaultServers.get(0).getPassword());
-
+			storeObj.connect(defaultServers.get(0).getImapHost(),defaultServers.get(0).getImapPort(),defaultServers.get(0).getUsername(), defaultServers.get(0).getPassword());
+			
 			boolean isCreated = true;
 			// Grab The default INBOX folder
 			Folder defaultFolder = storeObj.getDefaultFolder();
@@ -99,26 +111,64 @@ public class MailEngine implements Server{
 			Folder newFolder = defaultFolder.getFolder("Sent");
 			if (!newFolder.exists())
 				isCreated = newFolder.create(Folder.HOLDS_MESSAGES);
-
+			
 			// Create Folder SENT mail
-			Folder newFolder2 = defaultFolder.getFolder("SentMail");
-			if (!newFolder2.exists())
-				isCreated = newFolder.create(Folder.HOLDS_MESSAGES);
 			
-			LOGGER.log(Level.INFO, ("Folder Structure is Good: " + isCreated));
 			LOGGER.info("Mail Server Is running");
-			
-			
+			workingConfig=true;
 		} catch (MessagingException e)
 		{
-			e.printStackTrace();
-			if (MailEngine.DEBUG)
-				e.printStackTrace();
+			LOGGER.warning("Configurations invalid Mail Server will not start");
+			workingConfig = false;
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
-			//LOGGER.log(Level.SEVERE, e.toString(), e);
+			LOGGER.log(Level.INFO,e.toString(), e);
 		}
-		//connect();
+		
+		// Add web methods
+		
+		post("/mail/mailDomains.json" , (req,res) -> {
+			res.type("application/json");
+			HashSet<String> hs = new HashSet<String>();
+			for(ImapServer s : defaultServers)
+			{
+				hs.add(s.getAddress());
+			}
+			
+			return ConfigReader.printObject(hs);
+		});
+		
+		post("/mail/sendEmail.json", (req,res) -> {
+			res.type("application/json");
+			String toEmail = req.queryParams("toEmail");
+			String fromEmail = req.queryParams("fromEmail");
+			String subject = req.queryParams("emailSubject");
+			String body = req.queryParams("emailBody");
+			
+			if(toEmail == null || fromEmail == null || subject==null)
+			{
+				return "{\"success\":false,\"error\":\"Feilds Missing\"}";
+			}
+			if(body == null)
+			{
+				body = "";
+			}
+			int x;
+			for(x=0;x<defaultServers.size();x++)
+			{
+				if(defaultServers.get(x).getAddress().equals(fromEmail))
+					break;
+			}
+			
+			if(x==defaultServers.size())
+			{
+				return "{\"success\":false,\"error\":\"Email Address not available to send from\"}";
+			}
+			
+			boolean success = sendEmail(toEmail,DEFAULT_FROM_EMAIL, subject, body,x,null,null);
+			
+			return "{\"success\":"+success+",\"toEmail\":\""+toEmail+"\"}";
+		});
 	}
 	
 	public static MailEngine getInstance()
@@ -127,7 +177,6 @@ public class MailEngine implements Server{
 		{
 			instance = new MailEngine();
 			instance.setRunning(false);
-			instance.initMailServer();
 			instance.start();
 		}
 		
@@ -138,14 +187,14 @@ public class MailEngine implements Server{
 	{
 		Properties props = new Properties();
 		
-		props.put("mail.imap.host", defaultServers.get(0).getHost());
-		props.put("mail.imap.port", defaultServers.get(0).getPort());
+		props.put("mail.imap.host", defaultServers.get(0).getImapHost());
+		props.put("mail.imap.port", defaultServers.get(0).getImapPort());
 
 		emailSessionObj = Session.getDefaultInstance(props);
 
 		try {
-			storeObj = emailSessionObj.getStore("imap");
-			storeObj.connect(defaultServers.get(0).getHost(), defaultServers.get(0).getUsername(), defaultServers.get(0).getPassword());
+			storeObj = emailSessionObj.getStore(defaultServers.get(0).getImapProtocol());
+			storeObj.connect(defaultServers.get(0).getImapHost(), defaultServers.get(0).getUsername(), defaultServers.get(0).getPassword());
 		} catch (NoSuchProviderException e) {
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
@@ -162,12 +211,43 @@ public class MailEngine implements Server{
 	
 	public Boolean start()
 	{
-		if(instance!= null && isRunning)
+		startTime = System.currentTimeMillis();
+		//Stats timer
+		if(st != null)
+		{
+			st.cancel();
+		}
+		st = new Timer();
+		st.schedule( new TimerTask() {
+			
+			@Override
+			public void run()
+			{
+				for(int x = 0;x<4;x++)
+				{
+					stats[x][0] = stats[x+1][0];
+					stats[x][1] = stats[x+1][1];
+				}
+				stats[4][0]=0;
+				stats[4][1]=0;
+			}
+		}, 30000, 120000);// 2 minutes
+		
+		initMailServer();
+		
+		if(!workingConfig)
+		{
+			return false;
+		}
+		
+		if(isRunning)
 		{
 			return true;
 		}
 		else
 		{
+			timer.cancel();
+			timer = new Timer();
 			timer.schedule(new TimerTask() {	
 				@Override
 				public void run()
@@ -179,14 +259,15 @@ public class MailEngine implements Server{
 		}
 		if(SmsServer.getInstance() != null)
 			SmsServer.getInstance().regesterRequiredServers();
+		sendEmail("it@pittsburgsteel.com","test","test");
 		return true;
 	}
 
 	public Boolean stop()
 	{
 		Continue = false;
+		isRunning = false;
 		timer.cancel();
-		instance = null;
 		return true;
 	}
 
@@ -196,21 +277,31 @@ public class MailEngine implements Server{
 		return start();
 	}
 
-	public void sendEmail(String toEmailAddress, String subject, String emailBody)
+	public boolean sendEmail(String toEmailAddress, String subject, String emailBody)
 	{
-		sendEmail(toEmailAddress, DEFAULT_FROM_EMAIL, subject, emailBody, 0, null, null);
+		return sendEmail(toEmailAddress, DEFAULT_FROM_EMAIL, subject, emailBody, 0, null, null);
 	}
 
-	public void sendEmail(String toEmailAddress, String fromEmailAddress, String subject, String emailBody,
+	public boolean sendEmail(String toEmailAddress, String fromEmailAddress, String subject, String emailBody,
 			String id, HashMap<String, byte[]> attachments)
 	{
-		sendEmail(toEmailAddress, fromEmailAddress, subject, emailBody, 0, id, attachments);
+		return sendEmail(toEmailAddress, fromEmailAddress, subject, emailBody, 0, id, attachments);
 	}
 
-	public void sendEmail(String toEmailAddress, String fromEmailAddress, String subject, String emailBody,
+	public boolean sendEmail(String toEmailAddress, String fromEmailAddress, String subject, String emailBody,
 			int AddressIndex, String id, HashMap<String, byte[]> attachments)
 	{
-
+		boolean sent = false;
+		StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+		if(stackTraceElements[2] != null  && stackTraceElements[2].getClassName().equals("SmsServer"))
+		{
+			stats[4][1]++;
+		}
+		else
+		{
+			stats[4][0]++;
+		}
+		
 		// Index to decide what email address will send the mail
 		int index = AddressIndex;
 
@@ -226,18 +317,20 @@ public class MailEngine implements Server{
 		if (isFromPhone)
 		{
 			messageHistory = sms.messageHistory(fromEmailAddress,Mapper.getNumber(toEmailAddress), 10);
-			fromEmailAddress += "@smsmail.pittsburgfoundry.com";
+			fromEmailAddress += "@smsmail.pittsburgsteel.com";
 		}
 
 		Properties prop;
 		// Set send address properties
 		prop = System.getProperties();
+		System.out.println(defaultServers.get(index));
 		prop.put("mail.smtp.starttls.enable", defaultServers.get(index).getStarttls());
-		prop.put("mail.smtp.host", defaultServers.get(index).getHost());
+		prop.put("mail.smtp.host", defaultServers.get(index).getSmtpHost());
 		prop.put("mail.smtp.user", defaultServers.get(index).getUsername());
 		prop.put("mail.smtp.password", defaultServers.get(index).getPassword());
-		prop.put("mail.smtp.port", "25");
-		prop.put("mail.smtp.auth", defaultServers.get(index).getAuth());
+		prop.put("mail.smtp.port", defaultServers.get(index)+"");
+		prop.put("mail.smtp.auth", defaultServers.get(index).getAuth()+"");
+		//prop.put("mail.smtp.ssl.enable", "true");
 
 		// Open Session
 		Session session = Session.getDefaultInstance(prop);
@@ -246,7 +339,7 @@ public class MailEngine implements Server{
 		MimeMessage message = new MimeMessage(session);
 
 		LOGGER.info("Building Email");
-
+		
 		try
 		{
 
@@ -260,7 +353,8 @@ public class MailEngine implements Server{
 				message.setFrom(
 						new InternetAddress(defaultServers.get(index).getAddress(), defaultServers.get(index).getCommonName()));
 			}
-
+			for(Address a : message.getFrom())
+				LOGGER.info("Sending Mail From: "+ a.toString());
 			// SET HEADER //Check for messages in this thread.
 			if (id != null)
 				message.setHeader("In-Reply-To", id);
@@ -310,31 +404,32 @@ public class MailEngine implements Server{
 			LOGGER.info("Sending Message from email");
 			// Connect the transport and send the email. // May move this to its own thread.
 			// It can take some time.
-			
+			session.setDebug(true);
 			Transport transport = session.getTransport("smtp");
-			transport.connect(defaultServers.get(index).getHost(), defaultServers.get(index).getUsername(),
+			
+			transport.connect(defaultServers.get(index).getSmtpHost(),defaultServers.get(index).getSmtpPort(), defaultServers.get(index).getUsername(),
 					defaultServers.get(index).getPassword());
+			
 			transport.sendMessage(message, message.getAllRecipients());
 			transport.close();
 
-			LOGGER.info("Copying Mail to sent Folder: " + (isFromPhone ? "Sent" : "SentMail"));
+			sent = true;
+			LOGGER.info("Copying Mail to sent Folder");
 			// Copy mail to correct folder
-			Folder folder = storeObj.getFolder(isFromPhone ? "Sent" : "SentMail");
+			Folder folder = storeObj.getFolder("Sent");
 			folder.open(Folder.READ_WRITE);
 			message.setFlag(Flag.SEEN, true);
 			folder.appendMessages(new Message[] { message });
+			
+			return sent;
 
 		} catch (AddressException e)
 		{
-			if (MailEngine.DEBUG)
-				e.printStackTrace();
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
 			LOGGER.log(Level.WARNING, e.toString(), e);
 		} catch (MessagingException e)
 		{
-			if (MailEngine.DEBUG)
-				e.printStackTrace();
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
 			LOGGER.log(Level.WARNING, e.toString(), e);
@@ -345,15 +440,11 @@ public class MailEngine implements Server{
 			LOGGER.log(Level.SEVERE, e.toString(), e);
 		} catch (Exception e)
 		{
-			if (MailEngine.DEBUG)
-			{
-				LOGGER.severe("CRITICAL FAILURE");
-				e.printStackTrace();
-			}
 			LOGGER.log(Level.WARNING, e.toString(), e);
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
 		}
+		return sent;
 	}
 
 	private boolean isNumber(String fromEmailAddress)
@@ -488,8 +579,8 @@ public class MailEngine implements Server{
 
 		Properties props = new Properties();
 
-		props.put("mail.imap.host", defaultServers.get(0).getHost());
-		props.put("mail.imap.port", defaultServers.get(0).getPort());
+		props.put("mail.imap.host", defaultServers.get(0).getImapHost());
+		props.put("mail.imap.port", defaultServers.get(0).getImapPort());
 		try
 		{
 			// Initiate Imap Connection
@@ -623,11 +714,9 @@ public class MailEngine implements Server{
 	}
 
 	@Override
-	public String getLastErrorDate()
+	public long getLastErrorDate()
 	{
-		org.joda.time.format.DateTimeFormatter f = DateTimeFormat.forPattern("hh:mm:ss dd/MMM/YYYY");
-		org.joda.time.DateTime dateTime = new org.joda.time.DateTime(lastErrorDate);
-		return dateTime.toString(f);
+		return lastErrorDate;
 	}
 	
 	@Override
@@ -712,5 +801,57 @@ public class MailEngine implements Server{
 		}
 		LOGGER.info("Mail Server Configuration Saved");
 		return true;
+	}
+
+	@Override
+	public ObjectNode getStats()
+	{
+		DateTime startDt = new DateTime();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		HashMap<String, Object> chartData;
+		ArrayList<HashMap<String, Object>> chartPoints;
+		
+		HashMap<String,String> names = new HashMap<String,String>();
+		names.put("Emails Sent", "#619D67");
+		names.put("Texts Converted", "#455B4F");
+		
+		int count =0;
+		
+		for(String name : names.keySet() )
+		{
+			chartData = new HashMap<String, Object>();
+			chartPoints = new ArrayList<HashMap<String, Object>>();
+			data.put(name, chartData);
+			
+			chartData.put("type", "line");
+			chartData.put("name",  name);
+			chartData.put("color", names.get(name));
+			chartData.put("showInLegend", true);
+			chartData.put("markerType", "square");
+
+			DateTime dt = startDt;
+			
+			HashMap<String, Object> temp = new HashMap<String, Object>();
+			
+			for(int x=stats.length-1;x>=0;x--)
+			{
+				temp.put("x", dt.getMillis());
+				temp.put("y", stats[x][count]);
+				chartPoints.add(temp);
+				temp = new HashMap<String, Object>();
+				dt = dt.minusMinutes(2);
+			}				
+			chartData.put("dataPoints",chartPoints);
+			count++;
+		}
+		return mapper.valueToTree(data);
+	}
+
+	@Override
+	public Long getStartTime()
+	{
+		return startTime;
 	}
 }

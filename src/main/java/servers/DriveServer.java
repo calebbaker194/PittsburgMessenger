@@ -11,8 +11,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.crypto.URIReferenceException;
@@ -42,10 +46,11 @@ import com.google.api.services.drive.model.Permission;
 public class DriveServer implements server.Server{
 
 	public static DriveServer instance = null;
-
+	private long startTime = 0l;
 	private long lastErrorDate = 0l;
 	private Exception lastError = null;
-	
+	private Timer st = null;
+	private int stats[] = new int[5];
 	private static final Logger LOGGER = Logger.getLogger(DriveServer.class.getName());
 	
 	private boolean isRunning = true;
@@ -108,7 +113,6 @@ public class DriveServer implements server.Server{
 			}
 			else
 			{
-				System.out.println(files.get(0).getWebContentLink());
 				if (files.size() == 1)
 				{
 					instance.setRunning(true);
@@ -127,7 +131,6 @@ public class DriveServer implements server.Server{
 				} 
 				else
 				{
-					System.out.println("test");
 					instance.setRunning(true);
 					throw new URIReferenceException(" Multiple Files Found with the Same URL Cannot Send message");
 				}
@@ -161,7 +164,7 @@ public class DriveServer implements server.Server{
 	{
 		LOGGER.info("Logging into the drive");
 		get("/file",(req,res) -> {
-			
+			stats[4]++;
 			String filename = req.queryParams("FileName").replaceAll("%20", " ");
 			
 			com.google.api.services.drive.model.File f = DriveServer.getFile(filename);
@@ -179,6 +182,28 @@ public class DriveServer implements server.Server{
 	         }
 	         in.close();
 	        res.header("Content-Type", f.getMimeType());
+			return res;
+		});
+		get("/file/:fileName",(req,res) -> {
+			stats[4]++;
+			String filename = req.params(":fileName");
+			
+			com.google.api.services.drive.model.File f = DriveServer.getFile(filename);
+			if(f == null)
+			{
+				return "File NOT Found";
+			}
+			InputStream in = new URL(f.getWebContentLink()).openStream();
+			OutputStream out = res.raw().getOutputStream();
+			
+			byte[] buffer = new byte[4096];
+	         int length;
+	         while ((length = in.read(buffer)) > 0){
+	            out.write(buffer, 0, length);
+	         }
+	         in.close();
+	        res.header("Content-Type", f.getMimeType());
+	        res.type(f.getMimeType());
 			return res;
 		});
 		setRunning(true);
@@ -208,6 +233,28 @@ public class DriveServer implements server.Server{
 	@Override
 	public Object start()
 	{
+		
+		if(st != null)
+		{
+			st.cancel();
+		}
+		st = new Timer();
+		st.schedule( new TimerTask() {
+			
+			@Override
+			public void run()
+			{
+				for(int x = 0;x<4;x++)
+				{
+					stats[x] = stats[x+1];
+					stats[x] = stats[x+1];
+				}
+				stats[4]=0;
+				stats[4]=0;
+			}
+		}, 30000, 120000);// 2 minutes
+		
+		startTime = System.currentTimeMillis();
 		if (instance == null)
 		{
 			instance = new DriveServer();
@@ -261,11 +308,9 @@ public class DriveServer implements server.Server{
 	}
 
 	@Override
-	public String getLastErrorDate()
+	public long getLastErrorDate()
 	{
-		org.joda.time.format.DateTimeFormatter f = DateTimeFormat.forPattern("hh:mm:ss dd/MMM/YYYY");
-		org.joda.time.DateTime dateTime = new org.joda.time.DateTime(lastErrorDate);
-		return dateTime.toString(f);
+		return lastErrorDate;
 	}
 	
 	@Override
@@ -307,5 +352,59 @@ public class DriveServer implements server.Server{
 	public boolean setConfig(JsonNode config)
 	{
 		return true;
+	}
+
+	@Override
+	public ObjectNode getStats()
+	{
+		org.joda.time.DateTime dt = new org.joda.time.DateTime();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		HashMap<String, Object> chartData1 = new HashMap<String, Object>();
+		
+		ArrayList<HashMap<String, Object>> chartPoints = new ArrayList<HashMap<String, Object>>();
+		data.put("0", chartData1);
+		
+		chartData1.put("type", "line");
+		chartData1.put("name",  "Images Uploaded");
+		chartData1.put("color", "#619D67");
+		chartData1.put("showInLegend", true);
+		chartData1.put("markerType", "square");
+		
+		HashMap<String, Object> temp = new HashMap<String, Object>();
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[4]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[3]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[2]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[1]);
+		chartPoints.add(temp);
+		temp = new HashMap<String, Object>();
+		dt = dt.minusMinutes(2);
+		temp.put("x", dt.getMillis());
+		temp.put("y", stats[0]);
+		chartPoints.add(temp);
+		
+		chartData1.put("dataPoints",chartPoints);
+		
+		return mapper.valueToTree(data);
+	}
+
+	@Override
+	public Long getStartTime()
+	{
+		return startTime;
 	}
 }

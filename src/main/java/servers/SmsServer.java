@@ -3,17 +3,29 @@ package servers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sun.mail.imap.protocol.Namespaces;
 import com.twilio.Twilio;
 import com.twilio.base.ResourceSet;
+import com.twilio.http.HttpMethod;
+import com.twilio.http.Request;
+import com.twilio.http.Response;
+import com.twilio.http.TwilioRestClient;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
+import com.twilio.rest.api.v2010.account.IncomingPhoneNumber;
 import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.rest.chat.v1.Service;
+import com.twilio.rest.trunking.v1.Trunk;
+import com.twilio.rest.trunking.v1.TrunkReader;
 import com.twilio.type.PhoneNumber;
 import json.ConfigReader;
 import server.Mapper;
 import server.TwilioAuthData;
+import spark.Spark;
 import spark.utils.IOUtils;
 import static spark.Spark.*;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -21,6 +33,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.HttpResponse;
@@ -31,6 +49,8 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import com.twilio.rest.api.v2010.Account;
+import com.twilio.rest.api.v2010.AccountCreator;
 
 public class SmsServer implements server.Server{
 
@@ -38,13 +58,16 @@ public class SmsServer implements server.Server{
 	private static SmsServer instance = null;
 	private boolean isRunning = false;
 	private MailEngine me = null;
+	private long startTime = 0l;
 	private long lastErrorDate = 0l;
+	private Timer st = null;
 	private Exception lastError = null;
-
+    public int[][] stats = new int [5][4];
 	private String ACCOUNT_SID = "";
 	private String AUTH_TOKEN = "";
 	public boolean init = false;
 	public HashMap<String, String> autoReplyMap;
+	private boolean accepting = true;
 	// Create Number and response maps
  
 	//Create Single Instance
@@ -67,11 +90,61 @@ public class SmsServer implements server.Server{
 	private void InitSmsServer()
 	{
 		Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-		init = true;
+		init = true;	
 		// Set Port for web server
 		
+		post("/text/sendSms.json", (req, res) -> {
+			
+			res.type("application/json");
+			if(req.session(false) != null)
+			{
+				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				{
+					String to = req.queryParams("toNumber");
+					String from = req.queryParams("fromNumber");
+					String msg = req.queryParams("textBody");
+					
+					if(to==null || from==null)
+					{
+						return "{\"success\":false}";
+					}
+					
+					String messageId = sendText(to, from, msg);
+					if(messageId != null)
+					{
+						return "{\"success\":true, \"mid\":\""+messageId+"\"}";
+					}
+					return "{\"success\":false}";
+				}
+			}
+			return null;
+		});
+		
+		post("/text/numbers.json", (req, res) -> {
+			HashSet<String> numberList = new HashSet<String>();
+			ResourceSet<Trunk> trunks = Trunk.reader().read();
+			res.type("application/json");
+			for(Trunk t : trunks)
+			{
+				ResourceSet<com.twilio.rest.trunking.v1.trunk.PhoneNumber> phones = 
+						com.twilio.rest.trunking.v1.trunk.PhoneNumber.reader(t.getSid()).read();
+				for(com.twilio.rest.trunking.v1.trunk.PhoneNumber pn : phones)
+					numberList.add(pn.getPhoneNumber().toString());
+			}
+			
+			return ConfigReader.printObject(numberList);
+		});
+		
 		post("/sms", (req, res) -> {
-
+			
+			if(!accepting)
+			{
+				res.status(403);
+				return "";
+			}
+			
+			stats[4][0]++; //Texts Recieved
+			
 			// Location for the email to go to
 			String location = "";
 
@@ -126,11 +199,26 @@ public class SmsServer implements server.Server{
 			// Make Sure if nothing is in the hashmap that we pass null
 			if (attachments.size() < 1)
 				attachments = null;
-
+			boolean sent = false;
 			// Send the email
-			me.sendEmail(location, "from"+fromNumber, "Re: SMS", req.queryParams("Body").toString(),
+			try {
+				sent = me.sendEmail(location, "from"+fromNumber, "Re: SMS", req.queryParams("Body").toString(),
 					me.getReplyID(fromNumber), attachments);
-
+			}
+			catch(Exception e) {};
+			
+			if(sent)
+			{
+				stats[4][2]++;
+			}
+			else
+			{
+				stats[4][3]++;
+			}
+			
+			
+			//TODO: Following code does not work properly 
+			/*
 			// Get the message history
 			ResourceSet<Message> messages = Message.reader().setFrom(new com.twilio.type.PhoneNumber(fromNumber))
 					.read();
@@ -159,6 +247,8 @@ public class SmsServer implements server.Server{
 				MessagingResponse twiml = new MessagingResponse.Builder().message(sms).build();
 				return twiml.toXml();
 			}
+			*/
+			// END TODO:
 			// Otherwise return an empty response //AKA don't send a message back
 			return "<Response></Response>";
 		});
@@ -166,6 +256,7 @@ public class SmsServer implements server.Server{
 	// Send a text message
 	public String sendText(String to, String from, String text, String tempfile)
 	{
+		stats[4][1]++; //texts sent
 		LOGGER.info("Creating MMS Message");
 		if (instance.init)
 		{
@@ -190,6 +281,7 @@ public class SmsServer implements server.Server{
 	public String sendText(String to, String from, String msg)
 	{
 		
+		stats[4][1]++; //texts sent
 		LOGGER.info("Creating Text Message");
 		if (instance.init)
 		{
@@ -297,22 +389,44 @@ public class SmsServer implements server.Server{
 	@Override
 	public Object start()
 	{
+		accepting = true;
+		startTime = System.currentTimeMillis();
 		if(instance == null)
 		{
 			SmsServer.getInstance();
 		}
-		instance.isRunning = sendText("+19039463351", "+19037086135", "") != null;
+		instance.isRunning = true;
 		if(MailEngine.getInstance() != null)
 			MailEngine.getInstance().regesterRequiredServers();
+		
+		if(st != null)
+		{
+			st.cancel();
+		}
+		st = new Timer();
+		st.schedule( new TimerTask() {
+			
+			@Override
+			public void run()
+			{
+				for(int x = 0;x<4;x++)
+				{
+					stats[x][0] = stats[x+1][0];
+					stats[x][1] = stats[x+1][1];
+				}
+				stats[4][0]=0;
+				stats[4][1]=0;
+			}
+		}, 30000, 120000);// 2 minutes
+		
 		return instance;
 	}
 	
 	@Override
 	public Object stop()
 	{
-		
-		instance = null;
-		return null;
+		accepting  = false;
+		return true;
 	}
 	
 	@Override
@@ -335,11 +449,10 @@ public class SmsServer implements server.Server{
 	}
 
 	@Override
-	public String getLastErrorDate()
+	public long getLastErrorDate()
 	{
-		org.joda.time.format.DateTimeFormatter f = DateTimeFormat.forPattern("hh:mm:ss dd/MMM/YYYY");
-		org.joda.time.DateTime dateTime = new org.joda.time.DateTime(lastErrorDate);
-		return dateTime.toString(f);
+
+		return lastErrorDate;
 	}
 	
 	
@@ -431,5 +544,58 @@ public class SmsServer implements server.Server{
 		{
 			return false;
 		}
+	}
+
+	@Override
+	public ObjectNode getStats()
+	{
+		DateTime startDt = new DateTime();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		HashMap<String, Object> chartData;
+		ArrayList<HashMap<String, Object>> chartPoints;
+		
+		HashMap<String,String> names = new HashMap<String,String>();
+		names.put("Texts Sent", "#619D67");
+		names.put("Texts Recieved", "#455B4F");
+		names.put("Texts Tunneled", "#88AA88");
+		names.put("Tunnel Failed", "#E60000");
+		int count =0;
+		
+		for(String name : names.keySet() )
+		{
+			chartData = new HashMap<String, Object>();
+			chartPoints = new ArrayList<HashMap<String, Object>>();
+			data.put(name, chartData);
+			
+			chartData.put("type", "line");
+			chartData.put("name",  name);
+			chartData.put("color", names.get(name));
+			chartData.put("showInLegend", true);
+			chartData.put("markerType", "square");
+
+			DateTime dt = startDt;
+			
+			HashMap<String, Object> temp = new HashMap<String, Object>();
+			
+			for(int x=stats.length-1;x>=0;x--)
+			{
+				temp.put("x", dt.getMillis());
+				temp.put("y", stats[x][count]);
+				chartPoints.add(temp);
+				temp = new HashMap<String, Object>();
+				dt = dt.minusMinutes(2);
+			}				
+			chartData.put("dataPoints",chartPoints);
+			count++;
+		}
+		return mapper.valueToTree(data);
+	}
+
+	@Override
+	public Long getStartTime()
+	{
+		return startTime;
 	}
 }

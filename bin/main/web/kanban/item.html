@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Kanban Item</title>
+<link rel="stylesheet" href="/kanban/css/item.css"/>
+<link rel="stylesheet" href="/kanban/css/theme.css"/>
+<link rel="stylesheet" href="/plugins/alertify.css"/>
+<script src="/plugins/alertify.js"></script>
+<script src="/plugins/vue.js"></script>
+<script src="/kanban/js/soundplayer.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+<script src="/plugins/colResize.js"></script>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
+</head>
+<body>
+<script>
+var scanned="$bundle_id";
+var item_id=$item_id;
+</script>
+<div id="app">
+	<div class="navbar">
+		<a href="/kanban">Main  &gt</a>
+		<a href="/kanban/items">Items  &gt</a>
+		<a href="/kanban/items/item?item_id=$item_id">$item_number</a>
+	</div>
+	<div class="header">
+		<h2><span>Item:</span><span>$item_number</span></h2>
+	</div>
+
+	<div class="main">
+		<div id="sound"></div>
+		<table id="itemstable">
+			<tr>
+				<th class="show-always"><div class="padding">Bundle Id</div></th>
+				<th class="show-always"><div class="padding">Created</div></th>
+				<th class="show-always"><div class="padding">Cleared</div></th>
+				<th class="show-always"><div class="padding">Cleared By</div></th>
+			</tr>
+			<tr v-for="bundle in bundles">
+				<td class="show-always"><div class="padding">{{ bundle.id }}</div></td>
+				<td class="show-always"><div class="padding">{{ bundle.created }}</div></td>
+				<td class="show-always"><div class="padding">{{ bundle.cleared }}</div></td>
+				<td class="show-always"><div class="padding">{{ bundle.clearedby }}</div></td>  
+			</tr>
+		</table>
+	</div>
+</div>
+</body>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+		bundles: [],
+	},
+	created () {
+		var self = this;
+		if(scanned != null && scanned >=0) {
+			playSound("kanban/sound/success");
+			alertify.success("Scanned Bundle:"+scanned);
+		}
+		else if(scanned == null || scanned == -1){
+			playSound("kanban/sound/fail");
+			alertify.error("Error Scanning In Bundle Please Try Again");
+		}
+		fetch('/kanban/bundles.json?item_id='+item_id,{  
+			credentials: 'same-origin',  
+			cache: 'no-store'  
+		})
+		.then(response => response.json())
+		.then(json => {
+			self.bundles = json
+		for(i in self.bundles) {
+			var cleared=new Date(self.bundles[i].cleared);
+			var created=new Date(self.bundles[i].created);
+
+			var options = {hour:"2-digit" , minute:"2-digit", day:"2-digit" ,month:"2-digit"}
+			if(self.bundles[i].cleared == null) {
+				self.bundles[i].cleared = "Not Cleared";
+			}
+			else {
+				self.bundles[i].cleared = cleared.toLocaleDateString("en-US",options);
+			}
+			self.bundles[i].created = created.toLocaleDateString("en-US",options);
+		    self.bundles[i].id = pad(self.bundles[i].id);
+		}
+		})
+	}
+})
+function pad(n, width=7, z=0) {return (String(z).repeat(width) + String(n)).slice(String(n).length)}
+
+$("#itemstable").colResizable({liveDrag:true});
+</script>
+</html>
