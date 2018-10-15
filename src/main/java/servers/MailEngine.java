@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -34,13 +33,10 @@ import javax.mail.Flags.Flag;
 import javax.mail.Message.RecipientType;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import email.ImapServer;
 import json.ConfigReader;
 import json.MailServerConfig;
@@ -56,18 +52,19 @@ public class MailEngine implements Server{
 	public long locktime = System.currentTimeMillis();
 	private Exception lastError = null;
 	private long startTime = 0l;
-	private ExecutorService threadPool;
 	private ArrayDeque<Future<String>> threadStatus= new ArrayDeque<Future<String>>(); 
 	public static final Logger LOGGER = Logger.getLogger(MailEngine.class.getName());
-	private static final boolean DEBUG = true;
 	public String mailStrProt = "imap";
 	Thread t;
 	private Timer st = null;
+	private ThreadPoolExecutor threadExecutor = new ThreadPoolExecutor(5, 10, 60l, TimeUnit.SECONDS, new BlockingArrayQueue<Runnable>());
+	private Folder emailFolderObj;
+	private Folder sentFolder;
 	private Timer timer = new Timer();
 	private SmsServer sms = null;
 	private boolean isRunning = false;
-	public Session emailSessionObj;
-	public Store storeObj;
+	public Session emailSessionObj = null;
+	public Store storeObj = null;
 	public Pattern pattern = Pattern
 			.compile("On [0-9]?[0-9]/[0-9]?[0-9]/[0-9][0-9][0-9][0-9] [0-9]?[0-9].[0-9][0-9] (AM|PM), .* wrote.");
 	public static Long CHECK_INTERVAL = 5000l;
@@ -94,7 +91,9 @@ public class MailEngine implements Server{
 		props.put("mail.imap.host", defaultServers.get(0).getImapHost()+"");
 		props.put("mail.imap.port", defaultServers.get(0).getImapPort()+"");
 		props.put("mail.imap.starttls.enable", defaultServers.get(0).getStarttls()+"");
-
+		props.put("mail.smtp.auth", "true");
+		//471936885326-iijrj522oj0l0ds8r1ssvs6582rt8b0h.apps.googleusercontent.com
+		//z2eFWRT1Ffs9k5TBIEcVBV0P
 		emailSessionObj = Session.getInstance(props);
 		
 		try
@@ -104,13 +103,13 @@ public class MailEngine implements Server{
 			// Initiate Imap Connection
 			storeObj.connect(defaultServers.get(0).getImapHost(),defaultServers.get(0).getImapPort(),defaultServers.get(0).getUsername(), defaultServers.get(0).getPassword());
 			
-			boolean isCreated = true;
+
 			// Grab The default INBOX folder
 			Folder defaultFolder = storeObj.getDefaultFolder();
 			// Create Folder Sent
 			Folder newFolder = defaultFolder.getFolder("Sent");
 			if (!newFolder.exists())
-				isCreated = newFolder.create(Folder.HOLDS_MESSAGES);
+				newFolder.create(Folder.HOLDS_MESSAGES);
 			
 			// Create Folder SENT mail
 			
@@ -118,8 +117,8 @@ public class MailEngine implements Server{
 			workingConfig=true;
 		} catch (MessagingException e)
 		{
-			LOGGER.warning("Configurations invalid Mail Server will not start");
 			workingConfig = false;
+			LOGGER.warning("Configurations invalid Mail Server will not start");
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
 			LOGGER.log(Level.INFO,e.toString(), e);
@@ -198,6 +197,7 @@ public class MailEngine implements Server{
 		} catch (NoSuchProviderException e) {
 			lastError = e;
 			lastErrorDate = System.currentTimeMillis();
+			LOGGER.log(Level.SEVERE, "No Mail Provider For Default Config", e);
 			return false;
 		}
 		catch (MessagingException e) {
@@ -223,13 +223,7 @@ public class MailEngine implements Server{
 			@Override
 			public void run()
 			{
-				for(int x = 0;x<4;x++)
-				{
-					stats[x][0] = stats[x+1][0];
-					stats[x][1] = stats[x+1][1];
-				}
-				stats[4][0]=0;
-				stats[4][1]=0;
+
 			}
 		}, 30000, 120000);// 2 minutes
 		
@@ -259,7 +253,23 @@ public class MailEngine implements Server{
 		}
 		if(SmsServer.getInstance() != null)
 			SmsServer.getInstance().regesterRequiredServers();
-		sendEmail("it@pittsburgsteel.com","test","test");
+		
+		// Open Inbox
+		try
+		{
+			emailFolderObj = emailFolderObj == null ?storeObj.getFolder("INBOX"):emailFolderObj;
+			sentFolder =  sentFolder == null ? storeObj.getFolder("Sent"): sentFolder;
+			emailFolderObj.open(Folder.READ_WRITE);
+			sentFolder.open(Folder.READ_WRITE);
+		} catch (MessagingException e)
+		{
+			lastError = e;
+			lastErrorDate = System.currentTimeMillis();
+			isRunning = false;
+			LOGGER.warning("Count not open folder:" + e);
+		}
+		// Open Sent
+
 		return true;
 	}
 
@@ -323,7 +333,6 @@ public class MailEngine implements Server{
 		Properties prop;
 		// Set send address properties
 		prop = System.getProperties();
-		System.out.println(defaultServers.get(index));
 		prop.put("mail.smtp.starttls.enable", defaultServers.get(index).getStarttls());
 		prop.put("mail.smtp.host", defaultServers.get(index).getSmtpHost());
 		prop.put("mail.smtp.user", defaultServers.get(index).getUsername());
@@ -404,7 +413,6 @@ public class MailEngine implements Server{
 			LOGGER.info("Sending Message from email");
 			// Connect the transport and send the email. // May move this to its own thread.
 			// It can take some time.
-			session.setDebug(true);
 			Transport transport = session.getTransport("smtp");
 			
 			transport.connect(defaultServers.get(index).getSmtpHost(),defaultServers.get(index).getSmtpPort(), defaultServers.get(index).getUsername(),
@@ -416,10 +424,8 @@ public class MailEngine implements Server{
 			sent = true;
 			LOGGER.info("Copying Mail to sent Folder");
 			// Copy mail to correct folder
-			Folder folder = storeObj.getFolder("Sent");
-			folder.open(Folder.READ_WRITE);
 			message.setFlag(Flag.SEEN, true);
-			folder.appendMessages(new Message[] { message });
+			sentFolder.appendMessages(new Message[] { message });
 			
 			return sent;
 
@@ -460,88 +466,57 @@ public class MailEngine implements Server{
 	{
 		if(!locked)
 		{
+			locked = true;
+			locktime = System.currentTimeMillis();
+			
 			try
 			{
-				locked = true;
-				locktime = System.currentTimeMillis();
-				
-				
-				// Create folder object and open it mode
-				Folder emailFolderObj = storeObj.getFolder("INBOX");
-				Folder sentFolder = storeObj.getFolder("Sent");
-				// Open Inbox
-				emailFolderObj.open(Folder.READ_WRITE);
-				sentFolder.open(Folder.READ_WRITE);
-				try
+				// Fetch UNANSWERED messages
+				Flags answered = new Flags(Flags.Flag.ANSWERED);
+				FlagTerm ansterm = new FlagTerm(answered, false);
+				javax.mail.Message[] messageobjs = emailFolderObj.search(ansterm);
+				for (int i = 0, n = messageobjs.length; i < n; i++)
 				{
-	
-					// Fetch UNANSWERED messages
-					Flags answered = new Flags(Flags.Flag.ANSWERED);
-					FlagTerm ansterm = new FlagTerm(answered, false);
+					javax.mail.Message indvidualmsg = messageobjs[i];
+								
+					mailParseTask m = new mailParseTask(indvidualmsg);
 					
-					javax.mail.Message[] messageobjs = emailFolderObj.search(ansterm);
-					ThreadPoolExecutor threadExecutor = new ThreadPoolExecutor(5, 10, 60l, TimeUnit.SECONDS, new BlockingArrayQueue<Runnable>());
-					threadExecutor.allowCoreThreadTimeOut(true);
-					threadPool = threadExecutor;
+					threadStatus.add(threadExecutor.submit(m));
 					
-					for (int i = 0, n = messageobjs.length; i < n; i++)
+					if(threadStatus.size()>=10)
 					{
-						javax.mail.Message indvidualmsg = messageobjs[i];
-									
-						mailParseTask m = new mailParseTask(indvidualmsg);
-						
-						threadStatus.add(threadPool.submit(m));
-						
-						if(threadStatus.size()>=10)
+						try
 						{
-							try
-							{
-								threadStatus.poll().get(10, TimeUnit.SECONDS);
-							}
-							catch(TimeoutException e) { LOGGER.log(Level.WARNING, e.toString(), e);}
-							catch(NullPointerException e) {}
+							threadStatus.poll().get(10, TimeUnit.SECONDS);
 						}
-							
+						catch(TimeoutException e) { LOGGER.log(Level.WARNING, e.toString(), e);}
+						catch(NullPointerException e) {}
 					}
-	
-					//Clear The Exicutor
-					if(!threadPool.awaitTermination(2, TimeUnit.SECONDS));
-					
-					// Now close all the objects
-					threadPool.shutdown();
-					emailFolderObj.close();
-					sentFolder.close();
-					//storeObj.close();
-					setRunning(true);
-	
-				} catch (NoSuchProviderException e)
-				{
-					lastError = e;
-					lastErrorDate = System.currentTimeMillis();
-					LOGGER.log(Level.WARNING, e.toString(), e);
-					isRunning = false;
-				} catch (MessagingException e)
-				{
-					lastError = e;
-					lastErrorDate = System.currentTimeMillis();
-					LOGGER.log(Level.WARNING, e.toString(), e);
-					isRunning = false;
-				} catch (Exception e)
-				{
-					lastError = e;
-					lastErrorDate = System.currentTimeMillis();
-					LOGGER.log(Level.WARNING, e.toString(), e);
-					isRunning = false;
+						
 				}
-				locked = false;
+
+				setRunning(true);
+
+			} catch (NoSuchProviderException e)
+			{
+				lastError = e;
+				lastErrorDate = System.currentTimeMillis();
+				LOGGER.log(Level.WARNING, e.toString(), e);
+				isRunning = false;
 			} catch (MessagingException e)
 			{
 				lastError = e;
 				lastErrorDate = System.currentTimeMillis();
-				isRunning = false;
 				LOGGER.log(Level.WARNING, e.toString(), e);
-				e.printStackTrace();
+				isRunning = false;
+			} catch (Exception e)
+			{
+				lastError = e;
+				lastErrorDate = System.currentTimeMillis();
+				LOGGER.log(Level.WARNING, e.toString(), e);
+				isRunning = false;
 			}
+			locked = false;
 		}
 		else if(System.currentTimeMillis()-locktime > 10000)
 		{
@@ -738,6 +713,8 @@ public class MailEngine implements Server{
 			storeObj.close();
 		} catch (MessagingException e)
 		{
+			lastError = e;
+			lastErrorDate = System.currentTimeMillis();
 			LOGGER.log(Level.WARNING, "Closing Mail Connection Failed", e);
 		}
 		load();
@@ -796,6 +773,8 @@ public class MailEngine implements Server{
 			defaultServers = msc.getDefaultServer();
 		} catch (JsonProcessingException e)
 		{
+			lastError = e;
+			lastErrorDate = System.currentTimeMillis();
 			LOGGER.log(Level.WARNING, "An Unknonw Error While Saving Configuration", e);
 			return false;
 		}

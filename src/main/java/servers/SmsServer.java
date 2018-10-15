@@ -3,29 +3,16 @@ package servers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.mail.imap.protocol.Namespaces;
 import com.twilio.Twilio;
 import com.twilio.base.ResourceSet;
-import com.twilio.http.HttpMethod;
-import com.twilio.http.Request;
-import com.twilio.http.Response;
-import com.twilio.http.TwilioRestClient;
-import com.twilio.twiml.MessagingResponse;
-import com.twilio.twiml.messaging.Body;
-import com.twilio.rest.api.v2010.account.IncomingPhoneNumber;
 import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.rest.chat.v1.Service;
 import com.twilio.rest.trunking.v1.Trunk;
-import com.twilio.rest.trunking.v1.TrunkReader;
 import com.twilio.type.PhoneNumber;
 import json.ConfigReader;
 import server.Mapper;
 import server.TwilioAuthData;
-import spark.Spark;
 import spark.utils.IOUtils;
 import static spark.Spark.*;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -33,10 +20,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -49,8 +33,6 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import com.twilio.rest.api.v2010.Account;
-import com.twilio.rest.api.v2010.AccountCreator;
 
 public class SmsServer implements server.Server{
 
@@ -160,13 +142,10 @@ public class SmsServer implements server.Server{
 			// Check MMS
 			int numMedia = 0;
 			String numMediaStr = req.queryParams("NumMedia");
-			try
-			{
+			
+			if(numMediaStr != null)
 				numMedia = Integer.parseInt(numMediaStr);
-			} catch (Exception e)
-			{
-				System.out.println("Either No attachment or server fail");
-			}
+			
 
 			// Create An Arraylist to hold all the attachments
 			HashMap<String, byte[]> attachments = new HashMap<String, byte[]>();
@@ -205,7 +184,9 @@ public class SmsServer implements server.Server{
 				sent = me.sendEmail(location, "from"+fromNumber, "Re: SMS", req.queryParams("Body").toString(),
 					me.getReplyID(fromNumber), attachments);
 			}
-			catch(Exception e) {};
+			catch(Exception e) {
+				
+			};
 			
 			if(sent)
 			{
@@ -411,11 +392,15 @@ public class SmsServer implements server.Server{
 			{
 				for(int x = 0;x<4;x++)
 				{
-					stats[x][0] = stats[x+1][0];
-					stats[x][1] = stats[x+1][1];
+					for(int y = 0; y<stats[x].length;y++)
+					{
+						stats[x][y] = stats[x+1][y];
+					}
 				}
-				stats[4][0]=0;
-				stats[4][1]=0;
+				for(int y = 0; y<stats[stats.length-1].length;y++)
+				{
+					stats[4][y] = stats[stats.length-1][y];
+				}
 			}
 		}, 30000, 120000);// 2 minutes
 		
@@ -490,7 +475,10 @@ public class SmsServer implements server.Server{
 			ConfigReader.WriteConf(td, "credentials/twilio.json");
 			return true;
 		} catch (Exception e)
-		{
+		{	
+			lastError = e;
+			lastErrorDate = System.currentTimeMillis();
+			LOGGER.log(Level.WARNING, "Save Failed", e);
 			return false;
 		}
 	}
@@ -510,6 +498,8 @@ public class SmsServer implements server.Server{
 			AUTH_TOKEN = twilio.getAuth_token();
 		}catch (Exception e)
 		{
+			lastError = e;
+			lastErrorDate = System.currentTimeMillis();
 			LOGGER.log(Level.WARNING, "Failed To load SMS configuration", e);
 			return false;
 		}
@@ -542,6 +532,7 @@ public class SmsServer implements server.Server{
 			return save();
 		}catch(Exception e)
 		{
+			
 			return false;
 		}
 	}

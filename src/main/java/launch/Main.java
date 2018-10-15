@@ -19,6 +19,7 @@ import json.ConfigReader;
 import json.LaunchConfig;
 import kanban.Kanban;
 import kanban.User;
+import regex.CommonRegex;
 import server.Mapper;
 import server.Server;
 import servers.DriveServer;
@@ -109,15 +110,14 @@ public class Main{
 		
 		serverList = new Server[] {me,sms,dr};
 		InitMonitor();
-		Kanban k = new Kanban();
+		
+		new Kanban();
 		
 		me.regesterRequiredServers();
 		sms.regesterRequiredServers();
 		dr.regesterRequiredServers();
 		
 		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
-		
-		
 	}
 
 	private void InitMonitor()
@@ -275,6 +275,11 @@ public class Main{
 			if(req.host() == "kanban.pittsburgsteel.com") {
 				res.redirect("/kanban");
 				return res;
+			}
+			
+			if(!/*(*/req.ip().matches(CommonRegex.LOCAL_IP)/*) || allowRemote */)
+			{
+				return null;
 			}
 			
 			if(req.session(false) != null)
@@ -533,7 +538,7 @@ public class Main{
 	@Test
 	public static void main(String args[])throws IOException, GeneralSecurityException
 	{	
-		Main a = new Main(); 
+		new Main(); 
 		
 	}
 

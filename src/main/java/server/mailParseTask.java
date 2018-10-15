@@ -33,9 +33,9 @@ public class mailParseTask implements Callable<String> {
 	}
 
 	public String call() throws InvalidParameterException {
-		
+		long t = System.currentTimeMillis();
 		String returnVal="";
-				
+		System.out.println(Thread.currentThread().getName()+"[MAIL_PARGSER]" + (System.currentTimeMillis() - t));
 		try
 		{
 			if (!(indvidualmsg.getFlags().contains(Flag.ANSWERED)))
@@ -124,8 +124,7 @@ public class mailParseTask implements Callable<String> {
 							MailEngine.LOGGER.fine(e.getMessage());
 						} catch (IOException e)
 						{
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							MailEngine.LOGGER.log(Level.WARNING, e.toString(), e);
 						}
 					    
 					    // Iterator through attachments and send them
@@ -153,7 +152,7 @@ public class mailParseTask implements Callable<String> {
 			MailEngine.LOGGER.log(Level.WARNING, e.toString(), e);
 			e.printStackTrace();
 		}
-		
+		System.out.println(Thread.currentThread().getName()+"[MAIL_PARGSER]" + (System.currentTimeMillis() - t));
 		return returnVal;
 	}
 
