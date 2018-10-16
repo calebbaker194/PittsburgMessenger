@@ -8,21 +8,21 @@
 <link rel="stylesheet" href="/css/theme.css">
 <script src="/plugins/vue.js"></script>
 <script src="/plugins/alertify.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="plugins/jquery.js"></script>
 </head>
 <body class="html-body bg-light">
 	<div id="app" class="window">
 		<div class="outercenter">
-			<form name="adminform" action="/admin/config">
-				<label>Username:</label><input type="text">
+			<form name="adminform" action="/admin" method="post">
+				<label>Username:</label><input name="username" type="text" value="$username">
 				<br class="clear"/>
-				<label>Password:</label><input type="text">
+				<label>Password:</label><input name="password" type="password" value="$password">
 				<br class="clear"/>
-				<label>Ip Address:</label><input type="text">
+				<!--  <label v-if="false">Ip Address:</label><input type="text">
+				<br class="clear"/>*@ -->
+				<label>Attempt Limit:</label><input name="iplimit" type="text" value="$iplimit">
 				<br class="clear"/>
-				<label>Attempts:</label><input type="text">
-				<br class="clear"/>
-				<label>Allow Remote:</label><input type="text">
+				<label>Allow Remote:</label><input type="checkbox" name="remote" #if($remote.equals("checked")) checked="$remote" #end>
 				<br class="clear"/>
 				<div class="center">
 					<input class="bttn bg-primary" type="submit" value="save">

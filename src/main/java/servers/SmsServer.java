@@ -9,6 +9,7 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.rest.trunking.v1.Trunk;
 import com.twilio.type.PhoneNumber;
 import json.ConfigReader;
+import regex.CommonRegex;
 import server.Mapper;
 import server.TwilioAuthData;
 import spark.utils.IOUtils;
@@ -45,8 +46,8 @@ public class SmsServer implements server.Server{
 	private Timer st = null;
 	private Exception lastError = null;
     public int[][] stats = new int [5][4];
-	private String ACCOUNT_SID = "";
-	private String AUTH_TOKEN = "";
+	public String ACCOUNT_SID = "";
+	public String AUTH_TOKEN = "";
 	public boolean init = false;
 	public HashMap<String, String> autoReplyMap;
 	private boolean accepting = true;
@@ -334,15 +335,16 @@ public class SmsServer implements server.Server{
 		}
 		String returnVal = "\r\n";
 		String inc = ">";
-		for (int x = 0; x < (chron > combined.size() ? combined.size() : chron); x++)
+		for (int x = 1; x < (chron > combined.size() ? combined.size() : chron); x++) // Starts off at 1 to avoid the last message sent
 		{
+			
 			DateTimeFormatter df = DateTimeFormat.forPattern("M/d/yyyy h:mm a,");
 			String from = combined.get(x).getFrom().toString();
 
 			returnVal += inc.substring(0, inc.length() - 1);
 
 			returnVal += "On " + df.print(combined.get(x).getDateSent()) + " "
-					+ (Mapper.getNumber(from))
+					+ (from.matches(CommonRegex.EMAIL_ADDRESS) ? Mapper.getNumber(from) : from)
 					+ " wrote:\n";
 
 			for (int y = 0; y <= x; y++)

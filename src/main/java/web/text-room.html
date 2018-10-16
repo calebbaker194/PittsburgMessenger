@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Pittsburg Messenger</title>
+<script src="/plugins/jquery.js"></script>
+<link rel="stylesheet" href="/css/theme.css"/> 
+<link rel="stylesheet" href="/css/text-room.css"/> 
+<script src="/plugins/vue.js"></script>
+<script src="/plugins/alertify.js"></script>
+</head>
+<body>
+	<script>var room=$room</script>
+	<div id="app">
+		<div class="head">
+		<h1>{{room}}</h1>
+		</div>
+		<div class="sidenav">
+			<div class="search-holder">
+			<div class="search"><input type=text placeholder="Search..."> <input class="bg-primary"  type ="submit" value="Search"></div>
+			<br class="clear"/>
+			</div>
+			<div class="convs">
+				<div v-for="conver in conversations" class="conv">
+					<div class="conv-head"><a :onclick="'javascript:setActiveNumber('+conver.contact+')'" href="#">{{conver.contact}}</a><div class="conv-head-date">{{conver.dateSent}}</div></div>
+					<div class="message-preview">{{conver.body}}</div>
+				</div>
+			</div>
+		</div>
+		<div class="body">
+			<div class="chat-holder">
+				<div class="chat-head">{{activeNumber}}</div>
+				<div class="chat">
+					<div v-for="message in messages" class="messages">
+					    <div class="message">
+					      <div :class="message.contact">
+					        <p>{{message.body}}</p>
+					        <div>
+					        	<img  :width="300/message.mediaLinks.length+'px'" :height="400/message.mediaLinks.length+'px'" v-for="media in message.mediaLinks" :src="media">
+					        </div>
+					        <div class="date">{{message.dateSent}}</div>
+					      </div>
+					    </div>	
+				    </div>
+				</div> 
+				<br class="clear"/>
+				<div class="chat-message-bar"></div>
+			</div> 
+		</div>
+	</div>
+</body>
+<script>
+const app = new Vue({
+	el: '#app',
+	data: {
+        conversations: {},
+        activeNumber: "",
+        messages: [],
+        room: "",
+	},
+	created () {
+		var self = this;
+		$.post('/text-room/'+room+'/conversations.json',function(data) {
+			for(var d in data)
+			{
+				data[d].dateSent = new Date(data[d].dateSent).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
+			}
+			self.conversations = data;
+		});
+		self.room = room;
+		//chron();
+	},
+	methods: {
+		refresh: function () {
+			
+			var self = this;
+			
+			if(self.activeNumber == "") {
+				self.messages = [];
+				return;
+			}
+			
+        	$.post('/text-room/'+room+'/'+self.activeNumber ,function(data) {
+        		
+        		for(var d in data)
+        		{
+        			data[d].dateSent = new Date(data[d].dateSent).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
+        		}
+        		
+        		self.messages = data;
+        	})
+        	
+        },
+		chron: function() {
+			this.refresh();
+			setTimeout(chron, 10000);
+		}
+
+	}
+})
+
+function setActiveNumber (number) {
+	//set active number;
+	app.activeNumber=number;
+	app.refresh();
+}
+</script>
+</html>
