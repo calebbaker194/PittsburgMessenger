@@ -79,9 +79,9 @@ public class SmsServer implements server.Server{
 		post("/text/sendSms.json", (req, res) -> {
 			
 			res.type("application/json");
-			if(req.session(false) != null)
+			if(req.session(false) != null || req.ip().matches(CommonRegex.LOCAL_IP))
 			{
-				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
+				if((req.session(false) != null && req.session(false).attribute("username").equals("thewonderfullhint")) || req.ip().matches(CommonRegex.LOCAL_IP))
 				{
 					String to = req.queryParams("toNumber");
 					String from = req.queryParams("fromNumber");
@@ -191,11 +191,11 @@ public class SmsServer implements server.Server{
 			
 			if(sent)
 			{
-				stats[4][2]++;
+				stats[4][2]++;//texts tunneled
 			}
 			else
 			{
-				stats[4][3]++;
+				stats[4][3]++;//tunnels failed
 			}
 			
 			
@@ -401,7 +401,7 @@ public class SmsServer implements server.Server{
 				}
 				for(int y = 0; y<stats[stats.length-1].length;y++)
 				{
-					stats[4][y] = stats[stats.length-1][y];
+					stats[4][y] = 0;
 				}
 			}
 		}, 30000, 120000);// 2 minutes
@@ -550,28 +550,35 @@ public class SmsServer implements server.Server{
 		ArrayList<HashMap<String, Object>> chartPoints;
 		
 		HashMap<String,String> names = new HashMap<String,String>();
+		HashMap<Integer,String> orders = new HashMap<Integer,String>();
 		names.put("Texts Sent", "#619D67");
 		names.put("Texts Recieved", "#455B4F");
 		names.put("Texts Tunneled", "#88AA88");
 		names.put("Tunnel Failed", "#E60000");
-		int count =0;
+
 		
-		for(String name : names.keySet() )
+		orders.put(0,"Texts Sent");
+		orders.put(1,"Texts Recieved");
+		orders.put(2,"Texts Tunneled");
+		orders.put(3,"Tunnel Failed");
+		
+		int count = 0;
+		
+		for(int y = 0; y<stats[0].length ; y++)
 		{
 			chartData = new HashMap<String, Object>();
 			chartPoints = new ArrayList<HashMap<String, Object>>();
-			data.put(name, chartData);
+			data.put(orders.get(y), chartData);
 			
 			chartData.put("type", "line");
-			chartData.put("name",  name);
-			chartData.put("color", names.get(name));
+			chartData.put("name",  orders.get(y));
+			chartData.put("color", names.get(orders.get(y)));
 			chartData.put("showInLegend", true);
 			chartData.put("markerType", "square");
 
 			DateTime dt = startDt;
 			
 			HashMap<String, Object> temp = new HashMap<String, Object>();
-			
 			for(int x=stats.length-1;x>=0;x--)
 			{
 				temp.put("x", dt.getMillis());

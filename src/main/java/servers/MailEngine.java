@@ -74,11 +74,7 @@ public class MailEngine implements Server{
 	public static String DEFAULT_FROM_EMAIL = "";
 	public boolean workingConfig = false;
 	public static MailEngine instance = null;
-	public int[][] stats  = {{10,1},
-							 {2,1},
-							 {1,2},
-							 {0,0},
-							 {3,2}};
+	public int[][] stats  = new int[5][2];
 	
 	private MailEngine()
 	{
@@ -425,6 +421,9 @@ public class MailEngine implements Server{
 			LOGGER.info("Copying Mail to sent Folder");
 			// Copy mail to correct folder
 			message.setFlag(Flag.SEEN, true);
+			if(!sentFolder.isOpen())
+				sentFolder.open(Folder.READ_WRITE);
+			
 			sentFolder.appendMessages(new Message[] { message });
 			
 			return sent;
@@ -565,7 +564,8 @@ public class MailEngine implements Server{
 			// What we send internal to external
 			emailFolderObj.open(Folder.READ_WRITE);
 			//
-			sentFolder.open(Folder.READ_WRITE);
+			if(!sentFolder.isOpen())
+				sentFolder.open(Folder.READ_WRITE);
 
 			// Create filters for email addresses
 			SearchTerm mailside = new FromTerm(new InternetAddress(fromAddress));
@@ -630,8 +630,6 @@ public class MailEngine implements Server{
 				return t.getHeader("In-Reply-To")[0];
 			}
 
-			emailFolderObj.close(false);
-			sentFolder.close(false);
 		} catch (NoSuchProviderException e)
 		{
 			lastError = e;

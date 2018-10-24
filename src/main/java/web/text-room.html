@@ -6,6 +6,7 @@
 <script src="/plugins/jquery.js"></script>
 <link rel="stylesheet" href="/css/theme.css"/> 
 <link rel="stylesheet" href="/css/text-room.css"/> 
+<link rel="stylesheet" href="/plugins/alertify.css"/> 
 <script src="/plugins/vue.js"></script>
 <script src="/plugins/alertify.js"></script>
 </head>
@@ -13,38 +14,68 @@
 	<script>var room=$room</script>
 	<div id="app">
 		<div class="head">
-		<h1>{{room}}</h1>
+			<div class="fill"></div>
+			<div class="sixty">
+			<h1>{{room}}</h1>
+			</div>
+			<div class="fill">
+				<button id="ddb" onclick="dropdown()">&#9660;</button>
+					<div id="dropDownMenu" class="dropMenu">
+						<a v-for="number in avaNumbers" :href="'/text-room/'+number">{{number}}</a>
+					</div>
+			</div>
 		</div>
 		<div class="sidenav">
 			<div class="search-holder">
-			<div class="search"><input type=text placeholder="Search..."> <input class="bg-primary"  type ="submit" value="Search"></div>
-			<br class="clear"/>
+			<div class="search">
+				<input id="search-text" type="text" placeholder="Search...">
+				<button id="searchButton" class="bg-primary" v-on:click="setSearch">Search</button>
+				<button v-if="searchText != ''" class="bg-secondary" v-on:click="resetSearch">Clear&#10006;</button>
+				<button class="bg-primary" v-on:click="dspFilter = !dspFilter">Filters</button>
+				<div v-if="dspFilter" class="filters bg-light">
+					<label><input type="checkbox" v-model="contactFilter">By Contact</label>
+					<br/>
+					<label><input type="checkbox" v-model="bodyFilter" >By Messages</label>
+				</div>
+			</div>
 			</div>
 			<div class="convs">
-				<div v-for="conver in conversations" class="conv">
-					<div class="conv-head"><a :onclick="'javascript:setActiveNumber('+conver.contact+')'" href="#">{{conver.contact}}</a><div class="conv-head-date">{{conver.dateSent}}</div></div>
-					<div class="message-preview">{{conver.body}}</div>
+				<div v-if="conver.displayFilter" v-for="conver in conversations" class="conv">
+					<div>
+						<div class="conv-head"><a :onclick="'javascript:setActiveNumber('+conver.contact+')'" href="#">{{conver.contact}}</a><div class="conv-head-date">{{conver.dateSent}}</div></div>
+						<div class="message-preview">{{conver.body}}</div>
+					</div>
 				</div>
 			</div>
 		</div>
 		<div class="body">
 			<div class="chat-holder">
-				<div class="chat-head">{{activeNumber}}</div>
-				<div class="chat">
-					<div v-for="message in messages" class="messages">
-					    <div class="message">
+				<div class="chat-head">
+					<div class="chat-head-title">{{activeNumber}}</div>
+					<div class="new-chat" class="right">
+						<div v-if="addNumber">
+							<input type="text" v-bind="newCust">
+							<button v-on:click="startConversation()">Start Conversation</button>
+							<button v-on:click="addNumber = false">&#10006;Cancel</button>
+						</div>
+						<button v-on:click="addNumber = true" v-else>&#10010;</button>
+					</div>
+				</div>
+				<div onscroll="markRead()" class="chat">
+					<div v-for="(message, index) in messages" class="messages">
+					    <div :id="message.id" class="message">
 					      <div :class="message.contact">
 					        <p>{{message.body}}</p>
 					        <div>
 					        	<img  :width="300/message.mediaLinks.length+'px'" :height="400/message.mediaLinks.length+'px'" v-for="media in message.mediaLinks" :src="media">
 					        </div>
-					        <div class="date">{{message.dateSent}}</div>
+					        <div class="date">{{message.status}} {{message.dateSent}}</div>
+					        <div class="status" v-if="index == 0">{{message.status}}</div>
 					      </div>
 					    </div>	
 				    </div>
 				</div> 
-				<br class="clear"/>
-				<div class="chat-message-bar"></div>
+				<div class="chat-message-bar"><form name="textBar" autocomplete="off" action="javascript:sendText()"><input id="smsMessage" type="text" placeholder="Type Here..."><input type="submit" value="Send"></form></div>
 			</div> 
 		</div>
 	</div>
@@ -57,18 +88,24 @@ const app = new Vue({
         activeNumber: "",
         messages: [],
         room: "",
+        searchText: "",
+        contactFilter: false,
+        bodyFilter: true,
+        dspFilter: false,
+        avaNumbers: [],
+        lastUpdate: 0,
+        page: 0,
+        pageload: false,
+        newCust: "",
+        addNumber: false,
+        
 	},
 	created () {
 		var self = this;
-		$.post('/text-room/'+room+'/conversations.json',function(data) {
-			for(var d in data)
-			{
-				data[d].dateSent = new Date(data[d].dateSent).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
-			}
-			self.conversations = data;
-		});
+		self.loadConversations();
 		self.room = room;
-		//chron();
+		self.chron();
+		self.convChron();
 	},
 	methods: {
 		refresh: function () {
@@ -79,30 +116,184 @@ const app = new Vue({
 				self.messages = [];
 				return;
 			}
+
+			var params = {};
 			
-        	$.post('/text-room/'+room+'/'+self.activeNumber ,function(data) {
+			if(self.lastUpdate != 0)
+				params.lastUpdate = self.lastUpdate;
+			
+			if(self.pageload)
+				params.page = self.page;
+			
+        	$.post('/text-room/'+room+'/'+self.activeNumber,params,function(data) {
         		
-        		for(var d in data)
-        		{
-        			data[d].dateSent = new Date(data[d].dateSent).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
+        		if(data.messages.length > 0) {
+	        		for(var d in data.messages)
+	        		{
+	        			data.messages[d].dateSent = new Date(data.messages[d].dateSent).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
+	        		}
+	        		self.lastUpdate = data.lastRefresh;
+	        		
+	        		if(self.pageload) {
+	        			
+	        		}
+	    			if(self.lastUpdate != 0) {
+	    				self.messages = data.messages.concat(self.messages);
+	    			}
+	    			else {
+	    				self.messages = data.messages;
+	    			}
         		}
-        		
-        		self.messages = data;
+ 	
         	})
         	
         },
+        loadConversations: function() {
+        	var self = this;
+    		$.post('/text-room/'+room+'/conversations.json',function(data) {
+    			console.log(data);
+    			data.sort(function(a, b){return b.dateSent - a.dateSent});
+    			for(var d in data)
+    			{
+    				data[d].dateSent = new Date(data[d].dateSent).toLocaleDateString("en-US",{"hour":"numeric","minute":"2-digit"});
+    				data[d].displayFilter = true;
+    			}
+    			self.conversations = data;
+    		});
+        },
 		chron: function() {
-			this.refresh();
-			setTimeout(chron, 10000);
+			if(this.activeNumber != "")
+			{
+				this.refresh();
+			}
+			setTimeout(this.chron, 10000);
+		},
+		convChron: function() {
+			this.loadConversations()
+			setTimeout(this.convChon, 30000);
+		},
+		loadNumbers: function() {
+			console.log("Laoding numbers")
+			var self = this;
+			$.post('/text/numbers.json' ,function(data) {
+				self.avaNumbers = data;
+			});
+		},
+		inSearch: function() {
+			var self = this;
+			
+			if(self.searchText == "" || self.searchText == null)
+				return;
+			
+			for(var conv in self.conversations)
+			{
+				this.conversations[conv].displayFilter=false;
+				if(self.contactFilter)
+				{
+					if(contact.includes(self.searchText))
+						self.conversations[conv].displayFilter = true;
+						continue;
+				}
+			}
+			if(this.bodyFilter) {
+			    jQuery.ajax({
+			    	type: "POST",
+			        url: '/text-room/'+room+'/filter/'+this.searchText,
+			        success: function (data) {
+			        	console.log(data)
+			        	for(var ctc in data)
+			        	{
+			        		console.log(data[ctc])
+			        		for(var conv in self.conversations) 
+			        		{
+			        			self.conversations[conv].displayFilter = self.conversations[conv].contact == data[ctc] ||  self.conversations[conv].displayFilter
+			        		}
+			        	}
+			        }
+			    });
+			}
+			
+		},
+		setSearch: function() {
+			this.searchText = document.getElementById("search-text").value;
+			this.dspFilter = false;
+			this.inSearch();
+		},
+		resetSearch: function() {
+			this.searchText = "";
+			for(var conv in this.conversations)
+			{
+				this.conversations[conv].displayFilter=true;
+			}
+		},
+		sendText: function(message) {
+			var self = this;
+			console.log(self.room+" "+self.activeNumber);
+			console.log((self.activeNumber === "") +" " +(self.activeNumber == ""))
+			if(self.activeNumber == "")
+			{
+				alertify.error("You Must have a conversation open. Click on the numbers on the left hand side")
+				return;
+			}
+			
+			$.post("/text/sendSms.json",{
+				"toNumber": self.activeNumber,
+				"fromNumber": self.room,
+				"textBody": message
+			},function (data)
+			{
+				if(data.success) {
+					self.refresh();
+				}
+				else {
+					alertify.error("Something Went Wrong. Unable to send text")
+				}
+			})
+		},
+		startConversation : function() {
+			var self = this;
+			if(self.newCust.charAt(0) == "9")
+			{
+				self.newCust = "1"+self.newCust;
+			}
+			if(self.newCust.charAt(0) == "+")
+			{
+				self.newCust = self.newCust.slice(1);
+			}
+			
+			self.addNumber = false;
+			self.activeNumber = self.newCust;
+			
+		},
+		markRead : function()  {
+			
 		}
 
 	}
 })
 
+function markRead() {
+	app.markRead();
+}
+
 function setActiveNumber (number) {
 	//set active number;
+	app.lastUpdate = 0;
+	app.page = 0;
 	app.activeNumber=number;
 	app.refresh();
+}
+
+function sendText() {
+	var message = document.getElementById("smsMessage").value;
+	document.getElementById("smsMessage").value = "";
+	console.log(message);
+	app.sendText(message);
+}
+
+function dropdown() {
+	app.loadNumbers()
+	document.getElementById("dropDownMenu").classList.toggle("show");
 }
 </script>
 </html>

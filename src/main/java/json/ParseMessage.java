@@ -7,22 +7,25 @@ public class ParseMessage implements Comparable<ParseMessage>{
 	private String contact;
 	private String body;
 	private ArrayList<String> mediaLinks;
+	private String status;
 	
 	public ParseMessage() {
 		
 	}
-	public ParseMessage (String cntc, String body, Long sent) {
+	public ParseMessage (String cntc, String body, Long sent, String status) {
 		setContact(cntc);
 		setBody(body);
 		setDateSent(sent);
+		setStatus(status);
 	}
 	
-	public ParseMessage(String cntc, String body, Long sent, ArrayList<String> tmp)
+	public ParseMessage(String cntc, String body, Long sent, ArrayList<String> tmp, String status)
 	{
 		setContact(cntc);
 		setBody(body);
 		setDateSent(sent);
 		setMediaLinks(tmp);
+		setStatus(status);
 	}
 	public String getBody()
 	{
@@ -85,5 +88,13 @@ public class ParseMessage implements Comparable<ParseMessage>{
 	public void setMediaLinks(ArrayList<String> mediaLink)
 	{
 		this.mediaLinks = mediaLink;
+	}
+	public String getStatus()
+	{
+		return status;
+	}
+	public void setStatus(String status)
+	{
+		this.status = status;
 	}
 }
