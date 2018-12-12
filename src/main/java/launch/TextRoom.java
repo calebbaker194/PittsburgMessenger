@@ -146,11 +146,20 @@ public class TextRoom {
 						{
 							tmp.add("https://api.twilio.com"+media.getUri().substring(0, media.getUri().lastIndexOf(".json")));
 						}
-						messages.add(new ParseMessage(m.getFrom().toString().equals("+"+Room)  ? "myMessage" : "fromThem",m.getBody(),m.getDateSent().getMillis(),tmp,m.getStatus().toString()));
+						messages.add(new ParseMessage(m.getFrom().toString().equals("+"+Room)  ? "myMessage" : "fromThem",
+													  m.getBody(),
+													  m.getDateSent().getMillis(),
+													  tmp,
+													  m.getStatus().toString(),
+													  m.getSid()));
 					}
 					else
 					{
-						messages.add(new ParseMessage(m.getFrom().toString().equals("+"+Room)  ? "myMessage" : "fromThem",m.getBody(),m.getDateSent().getMillis(),m.getStatus().toString()));
+						messages.add(new ParseMessage(m.getFrom().toString().equals("+"+Room)  ? "myMessage" : "fromThem",
+												 	  m.getBody(),
+													  m.getDateSent().getMillis(),
+													  m.getStatus().toString(),
+													  m.getSid()));
 					}
 				}
 			}

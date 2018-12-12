@@ -39,8 +39,45 @@
 			<h1 class="head-title">Mail Configuration</h1>
         <div class="form-seperate">
           <div class="row">
-             <label class="form">Email Host:</label>
-             <input data-autosize-input='{ "space": 10 }' id="emailhost" placeholder="mail.example.com" type="text"/>
+             <label class="form">IMAP Server:</label>
+             <input data-autosize-input='{ "space": 10 }' id="imapHost" placeholder="imap.example.com" type="text"/>
+          </div>
+          <br/>
+          <div class="row">
+             <label class="form">IMAP Port:</label>
+             <select id="imapPort" >
+             	<option value="143">143</option>
+             	<option value="993">993</option>
+             </select>
+          </div>
+          <br/>
+          <div class="row">
+             <label class="form">IMAP Protocol:</label>
+             <select id="imapProtocol">
+             	<option value="imaps">imaps</option>
+             	<option value="imap">imap</option>
+             </select>
+          </div>
+          <br/>
+          <div class="row">
+             <label class="form">SMTP Server:</label>
+             <input data-autosize-input='{ "space": 10 }' id="smtpHost" placeholder="smtp.example.com" type="text"/>
+          </div>
+          <br/>
+          <div class="row">
+             <label class="form">SMTP Port:</label>
+             <select id="smtpPort" >
+             	<option value="465">465</option>
+             	<option value="587">587</option>
+             </select>
+          </div>
+          </br>
+          <div class="row">
+             <label class="form">SMPT Protocol:</label>
+             <select  id="smtpProtocol">
+             	<option value="smtps">smtps</option>
+             	<option value="smtp">smtp</option>
+             </select>
           </div>
           <br/>
           <div class="row">
@@ -71,7 +108,7 @@
 			<br/>
       <div class="map title">
         <div>
-        <h3 title="Emails Sent from the address on the left well be send out from the number on the right">Map Incoming Text Messages</h3>
+        <h3 title="Emails Sent from the address on the left well be send out from the number on the right">Map Outgoing E-mails</h3>
         </div>
         <button class="bg-primary" type="button" onclick="javascript:addMap('mail');">Add</button>
         <button class="bg-primary" type="button" onclick="javascript:deleteMap('mail');">Remove</button>
@@ -107,7 +144,12 @@ window.onload = function() {
     
     var DMailServer = MailServer.defaultServer[0];
     
-    document.getElementById("emailhost").value=DMailServer.host;
+    document.getElementById("imapHost").value=DMailServer.imapHost;
+    document.getElementById("imapPort").value=DMailServer.imapPort;
+    document.getElementById("imapProtocol").value=DMailServer.imapProtocol;
+    document.getElementById("smtpHost").value=DMailServer.smtpHost;
+    document.getElementById("smtpPort").value=DMailServer.smtpPort;
+    document.getElementById("smtpProtocol").value=DMailServer.smtpProtocol;
     document.getElementById("emailaddress").value=DMailServer.address;
     document.getElementById("username").value=DMailServer.username;
     document.getElementById("password").value=DMailServer.password;
@@ -226,7 +268,12 @@ function deleteMap(type)
     var defaultServer = [];
     defaultServer.push(new Object());
     
-    defaultServer[0].host = document.getElementById("emailhost").value;
+    defaultServer[0].imapHost = document.getElementById("imapHost").value;
+    defaultServer[0].imapPort = document.getElementById("imapPort").value;
+    defaultServer[0].imapProtocol = document.getElementById("imapProtocol").value;
+    defaultServer[0].smtpHost = document.getElementById("smtpHost").value;
+    defaultServer[0].smtpPort = document.getElementById("smtpPort").value;
+    defaultServer[0].smtpProtocol = document.getElementById("smtpProtocol").value;
     defaultServer[0].address = document.getElementById("emailaddress").value;
     defaultServer[0].username = document.getElementById("username").value;
     defaultServer[0].password = document.getElementById("password").value;

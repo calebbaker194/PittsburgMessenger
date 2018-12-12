@@ -38,7 +38,7 @@ input {
   margin: 2px;
   padding: 3px;
 }
-.form-seperate input {
+.form-seperate input,select {
   width:280px;
   float: right;
   text-align: right;

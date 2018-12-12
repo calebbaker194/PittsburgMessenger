@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class ParseMessage implements Comparable<ParseMessage>{
 	private long dateSent;
 	private String contact;
+	private String id;
 	private String body;
 	private ArrayList<String> mediaLinks;
 	private String status;
@@ -18,7 +19,13 @@ public class ParseMessage implements Comparable<ParseMessage>{
 		setDateSent(sent);
 		setStatus(status);
 	}
-	
+	public ParseMessage (String cntc, String body, Long sent, String status,String id) {
+		setContact(cntc);
+		setBody(body);
+		setDateSent(sent);
+		setStatus(status);
+		setId(id);
+	}
 	public ParseMessage(String cntc, String body, Long sent, ArrayList<String> tmp, String status)
 	{
 		setContact(cntc);
@@ -26,6 +33,15 @@ public class ParseMessage implements Comparable<ParseMessage>{
 		setDateSent(sent);
 		setMediaLinks(tmp);
 		setStatus(status);
+	}
+	public ParseMessage(String cntc, String body, Long sent, ArrayList<String> tmp, String status,String id)
+	{
+		setContact(cntc);
+		setBody(body);
+		setDateSent(sent);
+		setMediaLinks(tmp);
+		setStatus(status);
+		setId(id);
 	}
 	public String getBody()
 	{
@@ -96,5 +112,13 @@ public class ParseMessage implements Comparable<ParseMessage>{
 	public void setStatus(String status)
 	{
 		this.status = status;
+	}
+	public String getId()
+	{
+		return id;
+	}
+	public void setId(String id)
+	{
+		this.id = id;
 	}
 }
