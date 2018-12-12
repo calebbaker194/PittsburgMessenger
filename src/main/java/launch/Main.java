@@ -19,6 +19,7 @@ import json.ConfigReader;
 import json.LaunchConfig;
 import kanban.Kanban;
 import kanban.User;
+import regex.CommonRegex;
 import server.Mapper;
 import server.Server;
 import servers.DriveServer;
@@ -39,10 +40,7 @@ public class Main{
 	public MailEngine me;
 	public SmsServer sms;
 	public DriveServer dr;
-	
-	private String uname="";
-	private String passwd="";
- 
+	public Admin admin;
 	public Server[] serverList= {me,sms,dr};
 	public HashMap<String, String> tokens = new HashMap<String, String>();
 	private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
@@ -56,6 +54,8 @@ public class Main{
         corsHeaders.put("Access-Control-Allow-Credentials", "true");
     }
 	
+    
+    
     public final static void apply() {
         Filter filter = new Filter() {
             @Override
@@ -69,19 +69,23 @@ public class Main{
     }
     
     
+    public static void writeConfig() {
+    	LaunchConfig a = new LaunchConfig();
+		a = ConfigReader.ReadConf(a.getClass(), "config/main.conf");
+		a.setAllowRemote(Admin.getInstance().getAllowRemote());
+		a.setIpLimit(Admin.getInstance().getIpLimit());
+		a.setAdmin((HashMap<String, String>)Admin.getInstance());
+		ConfigReader.WriteConf(a, "config/main.conf");
+    }
+    
 	public Main()
 	{
 		LaunchConfig a = new LaunchConfig();
-//		
+		
 		a = ConfigReader.ReadConf(a.getClass(), "config/main.conf");
-//		
-		uname = a.getWebUser();
-		passwd = a.getWebPassword();
-//		
-		staticFiles.externalLocation("webresources");	
-//		
-//		//Start Mail Server
-		//Start sms server
+		
+		staticFiles.externalLocation("webresources");
+		
 		try
 		{
 			port(a.getPort());
@@ -89,12 +93,18 @@ public class Main{
 		{
 			LOGGER.log(Level.SEVERE, e.toString(), e);
 		}
-
+		
 		// Add Certificate for the web server. 
 		secure(a.getCertPath(), a.getCertPassword(),
 				null, null, false);
 		
 		apply();
+		
+		admin = Admin.getInstance();
+		admin.setMap(a.getAdmin());
+		admin.setAllowRemote(a.isAllowRemote());
+		admin.setIpLimit(a.getIpLimit());
+		
 		
 		//Start Mail Server
 		me = MailEngine.getInstance();
@@ -102,22 +112,23 @@ public class Main{
 		//Start sms server
 		sms = SmsServer.getInstance();
 		
-		
-		
 		//Intiate Drive
 		dr = DriveServer.getInstance();
 		
 		serverList = new Server[] {me,sms,dr};
 		InitMonitor();
-		Kanban k = new Kanban();
+		
+		new Kanban();
 		
 		me.regesterRequiredServers();
 		sms.regesterRequiredServers();
 		dr.regesterRequiredServers();
 		
+		TextRoom.getInstance();
+		
+		
 		Mapper.loadMap(Mapper.DEFAUTL_MAP_LOCATION);
-		
-		
+	
 	}
 
 	private void InitMonitor()
@@ -277,6 +288,11 @@ public class Main{
 				return res;
 			}
 			
+			if(!/*(*/req.ip().matches(CommonRegex.LOCAL_IP)/*) || allowRemote */)
+			{
+				return null;
+			}
+			
 			if(req.session(false) != null)
 			{
 				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
@@ -338,21 +354,6 @@ public class Main{
 					
 					new ModelAndView(model, "web/login.html")
 			);
-		});
-		
-		get("/admin/config", (req, res) -> {
-			if(req.session(false) != null)
-			{
-				if(req.session(false).attribute("username") != null && req.session(false).attribute("username").equals("thewonderfullhint"))
-				{
-					Map<String, Object> model = new HashMap<String, Object>();					
-					return new VelocityTemplateEngine().render(
-							new ModelAndView(model, "web/admin.html")
-					); 
-				}
-			}
-			res.redirect("/login");
-			return res;
 		});
 		
 		get("/monitor", (req, res) -> {
@@ -478,11 +479,10 @@ public class Main{
 			return "";
 		});
 	}
-	
 
 	private boolean login(String username, String password)
 	{
-		return (username.equals(uname) && password.equals(passwd));
+		return admin.login(username, password);
 	}
 
 	private ArrayList<HashMap<String, Object>> getServers()
@@ -533,7 +533,7 @@ public class Main{
 	@Test
 	public static void main(String args[])throws IOException, GeneralSecurityException
 	{	
-		Main a = new Main(); 
+		new Main(); 
 		
 	}
 

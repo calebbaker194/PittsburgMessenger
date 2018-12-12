@@ -12,6 +12,9 @@
   width: 50%;
 
 }
+#app {
+	overflow: auto;
+}
 .right-div {
   float: right;
   width: 50%;

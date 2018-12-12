@@ -1,11 +1,15 @@
 package json;
 
+import java.util.HashMap;
+
 public class LaunchConfig {
 	private String certPassword;
 	private int port;
 	private String certPath;
-	private String webUser;
-	private String webPassword;
+	private HashMap<String, String> admin;
+	private int ipLimit = 30;
+	private boolean allowRemote = false;
+	
 	public int getPort()
 	{
 		return port;
@@ -22,22 +26,6 @@ public class LaunchConfig {
 	{
 		this.certPath = certPath;
 	}
-	public String getWebUser()
-	{
-		return webUser;
-	}
-	public void setWebUser(String webUser)
-	{
-		this.webUser = webUser;
-	}
-	public String getWebPassword()
-	{
-		return webPassword;
-	}
-	public void setWebPassword(String webPassword)
-	{
-		this.webPassword = webPassword;
-	}
 	public String getCertPassword()
 	{
 		return certPassword;
@@ -45,5 +33,29 @@ public class LaunchConfig {
 	public void setCertPassword(String certPassword)
 	{
 		this.certPassword = certPassword;
+	}
+	public HashMap<String, String> getAdmin()
+	{
+		return admin;
+	}
+	public void setAdmin(HashMap<String, String> admin)
+	{
+		this.admin = admin;
+	}
+	public int getIpLimit()
+	{
+		return ipLimit;
+	}
+	public void setIpLimit(int ipLimit)
+	{
+		this.ipLimit = ipLimit;
+	}
+	public boolean isAllowRemote()
+	{
+		return allowRemote;
+	}
+	public void setAllowRemote(boolean allowRemote)
+	{
+		this.allowRemote = allowRemote;
 	}
 }

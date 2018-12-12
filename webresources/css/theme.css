@@ -1608,7 +1608,6 @@ select.form-control-lg:not([size]):not([multiple]), .input-group-lg > select.for
 
 .window {
 	width: 98%;
-	height: 98%;
 	margin: 1% auto;
 	padding: 1%;
 	overflow: auto;
