@@ -61,7 +61,7 @@
 						<button v-on:click="addNumber = true" v-else>&#10010;</button>
 					</div>
 				</div>
-				<div onscroll="markRead()" class="chat">
+				<div id="chat" onscroll="markRead()" class="chat">
 					<div v-for="(message, index) in messages" class="messages">
 					    <div :id="message.id" class="message">
 					      <div :class="message.contact">
@@ -126,7 +126,7 @@ const app = new Vue({
 				params.page = self.page;
 			
         	$.post('/text-room/'+room+'/'+self.activeNumber,params,function(data) {
-        		
+        		console.log(data);
         		if(data.messages.length > 0) {
 	        		for(var d in data.messages)
 	        		{
@@ -151,7 +151,6 @@ const app = new Vue({
         loadConversations: function() {
         	var self = this;
     		$.post('/text-room/'+room+'/conversations.json',function(data) {
-    			console.log(data);
     			data.sort(function(a, b){return b.dateSent - a.dateSent});
     			for(var d in data)
     			{
@@ -173,7 +172,6 @@ const app = new Vue({
 			setTimeout(this.convChon, 30000);
 		},
 		loadNumbers: function() {
-			console.log("Laoding numbers")
 			var self = this;
 			$.post('/text/numbers.json' ,function(data) {
 				self.avaNumbers = data;
@@ -228,8 +226,7 @@ const app = new Vue({
 		},
 		sendText: function(message) {
 			var self = this;
-			console.log(self.room+" "+self.activeNumber);
-			console.log((self.activeNumber === "") +" " +(self.activeNumber == ""))
+
 			if(self.activeNumber == "")
 			{
 				alertify.error("You Must have a conversation open. Click on the numbers on the left hand side")
@@ -266,7 +263,17 @@ const app = new Vue({
 			
 		},
 		markRead : function()  {
-			
+			var self = this;
+			var chatBox =  document.getElementById("chat");
+			console.log(chatBox);
+			for(var message in self.messages) 
+			{
+				
+				var messageDiv = document.getElementById(self.messages[message].id);
+				console.log(messageDiv)
+				if(chatBox.scrollTop < messageDiv.scrollTop && chatBox.scrollTop + chatBox.clientHeight > messageDiv.ScrollTop)
+					console.log("test");
+			}
 		}
 
 	}
@@ -287,7 +294,6 @@ function setActiveNumber (number) {
 function sendText() {
 	var message = document.getElementById("smsMessage").value;
 	document.getElementById("smsMessage").value = "";
-	console.log(message);
 	app.sendText(message);
 }
 
